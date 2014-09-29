@@ -53,7 +53,7 @@ setup(
     long_description=get_readme(),
     author='Marcus Ottosson',
     author_email='marcus@abstractfactory.com',
-    url='https://github.com/pyqt/pyqt5',
+    url='https://github.com/pyqt/python-qt5',
     license='GPLv3',
     packages=find_packages(),
     zip_safe=False,
