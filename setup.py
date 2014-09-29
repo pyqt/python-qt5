@@ -12,6 +12,7 @@ def get_version():
 
 
 def get_package_data():
+    """Include all files from all sub-directories"""
     package_data = dict()
 
     package_data['PyQt5'] = list()
@@ -26,6 +27,10 @@ def get_package_data():
 
     package_data['PyQt5'].extend(["*.exe", "*.dll", "*.pyd"])
     return package_data
+
+
+def get_data_files():
+    return [('', ['qt.conf'])]
 
 
 def get_readme():
@@ -58,5 +63,6 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     classifiers=classifiers,
-    package_data=get_package_data()
+    package_data=get_package_data(),
+    data_files=get_data_files()
 )
