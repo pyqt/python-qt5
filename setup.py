@@ -5,7 +5,8 @@ from setuptools import setup, find_packages
 
 
 def get_version():
-    sys.path.insert(os.path.dirname(__file__))
+    repo_dir = os.path.dirname(__file__)
+    sys.path.insert(0, repo_dir)
     import PyQt5
     return PyQt5.__version__
 
