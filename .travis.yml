@@ -4,8 +4,6 @@ python:
 install: 
 script:
 - pip install git+git://github.com/abstractfactory/pyblish.git
-after_success:
-- coveralls
 deploy:
   provider: pypi
   user: mottosso
