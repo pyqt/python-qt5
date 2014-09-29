@@ -28,7 +28,7 @@ package_data['PyQt5'].extend(["*.exe", "*.dll", "*.pyd"])
 
 setup(
     name='pypiqt5',  # To avoid name-clash with existing PyQt5
-    version="0.1.0",
+    version="0.1.1",
     description='PyQt5',
     long_description="pypiqt5",
     author='Marcus Ottosson',
