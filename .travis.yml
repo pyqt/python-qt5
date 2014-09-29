@@ -7,7 +7,7 @@ script:
 deploy:
   provider: pypi
   user: mottosso
-  distributions: "bdist bdist_wininst"
+  distributions: "bdist_wininst"
   password:
     secure: c2n8K185Yz8u7y4zeqmZC+lkGIRqWJubHi/3SVdelQF+rgCUbbCg25B4TTAM0r1ESReuLixjVpU2UmuJ8LonmUsCicnBA0gbWfTfkIMICVZ+0+s3WYnlIAaO0rYj581vVwTXC/iN8nRepcjsczA0HThRp3lILB7ZjNxLRYivFRY=
   on:
