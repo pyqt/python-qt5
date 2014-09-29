@@ -31,7 +31,7 @@ plugin_path = os.path.join(dirname, 'plugins', 'platforms')
 os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = plugin_path
 
 # Expose versions
-version_info = (0, 1, 3)  # Version of this release
+version_info = (0, 1, 4)  # Version of this release
 version = "%s.%s.%s" % version_info
 __version__ = version
 
