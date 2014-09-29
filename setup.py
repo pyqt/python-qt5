@@ -28,7 +28,14 @@ def get_package_data():
     return package_data
 
 
+def get_readme():
+    with open('README.txt') as f:
+        readme = f.read()
+    return readme
+
+
 classifiers = [
+    'Development Status :: 3 - Alpha',
     'Intended Audience :: Developers',
     'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
     'Programming Language :: Python',
@@ -40,10 +47,10 @@ classifiers = [
 
 
 setup(
-    name='pypiqt5',  # To avoid name-clash with existing PyQt5
+    name='python-qt5',
     version=get_version(),
     description='PyQt5',
-    long_description="pypiqt5",
+    long_description=get_readme(),
     author='Marcus Ottosson',
     author_email='marcus@abstractfactory.com',
     url='https://github.com/pyqt/pyqt5',
