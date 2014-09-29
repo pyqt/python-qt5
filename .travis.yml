@@ -9,7 +9,9 @@ after_success:
 deploy:
   provider: pypi
   user: mottosso
+  distributions: "bdist"
   password:
     secure: F7vWBoIB1JbC9b9wtvVmcAgcJwt8MTjjw9d/QcdVQalEKt0296LGbJckBr5djm9wiTr7u2EY8H8PQvaVSD9TjJ2u/XfO6oINmkd/lOklZ3Yvc6A6BkgVSrxZnYvKeGO/rd9/unziAYTP1xi9tYN9FHchjkOIUpc1DuSqZf8cV9s=
   on:
     tags: true
+    all_branches: true
