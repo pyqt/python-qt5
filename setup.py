@@ -1,3 +1,4 @@
+import os
 from setuptools import setup, find_packages
 
 classifiers = [
@@ -11,10 +12,24 @@ classifiers = [
 ]
 
 
+package_data = dict()
+
+package_data['PyQt5'] = list()
+for subdir in ("plugins/", "qml/", "uic/"):
+    abspath = os.path.abspath("PyQt5/" + subdir)
+    for root, dirs, files in os.walk(abspath):
+        for f in files:
+            fpath = os.path.join(root, f)
+            relpath = os.path.relpath(fpath, abspath)
+            relpath = relpath.replace("\\", "/")
+            package_data['PyQt5'].append(subdir + relpath)
+
+package_data['PyQt5'].extend(["*.exe", "*.dll", "*.pyd"])
+
 setup(
     name='pypiqt5',  # To avoid name-clash with existing PyQt5
-    version="5.3.2",
-    description='quality assurance for content',
+    version="0.1.0",
+    description='PyQt5',
     long_description="pypiqt5",
     author='Marcus Ottosson',
     author_email='marcus@abstractfactory.com',
@@ -23,5 +38,5 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     classifiers=classifiers,
-    package_data={},
+    package_data=package_data
 )
