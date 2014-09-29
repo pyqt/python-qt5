@@ -1,16 +1,32 @@
-### PyQt5 Distributed via PyPI
+### PyQt5 - distributed via PyPI
 
 [![Build Status][travis]][travis_repo]
 [![PyPI version][pypi]][pypi_repo]
 
-> This is not in any way related to Riverbanksoftware.
+### Preface
+
+The goal of this project is to supply PyQt via PyPI, and that's what it does, but currently only for:
+
+- Python 2.7
+- Windows 7+
+- PyQt5 5.3.2 compiled using Qt 5.3.1. 
+
+If you require alternative versions, [contact me][mail] or submit an issue and we'll talk about it.
+
+> Note that these packages are not provided by Riverbank Computing Limited. Please do not contact them if you require help with them.
+
+### Installation
+
+First, make sure you have the Visual Studio C++ 2013 redistributable, available [here][redist]. Then go ahead and install it, like this:
 
 ```bash
 # To install
 $ pip install python-qt5
 ```
 
-[travis]: https://travis-ci.org/pyqt/pyqt5.svg?branch=master
-[travis_repo]: https://travis-ci.org/pyqt/pyqt5
+[travis]: https://travis-ci.org/pyqt/python-qt5.svg?branch=master
+[travis_repo]: https://travis-ci.org/pyqt/python-qt5
 [pypi]: https://badge.fury.io/py/python-qt5.svg
-[pypi_repo]: http://badge.fury.io/py/pyqt5
+[pypi_repo]: http://badge.fury.io/py/python-qt5
+[redist]: http://www.microsoft.com/en-us/download/details.aspx?id=40784
+[mail]: mailto:marcus@abstractfactory.io

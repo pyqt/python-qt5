@@ -1,9 +1,8 @@
 language: python
 python:
 - 2.7
-install: 
 script:
-- pip install git+git://github.com/abstractfactory/pyblish.git
+- pip install git+git://github.com/pyqt/python-qt5.git
 deploy:
   provider: pypi
   user: mottosso
