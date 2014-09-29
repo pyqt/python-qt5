@@ -16,10 +16,14 @@
 # WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 
 import os
+import sys
+
+# Expose sip to PYTHONPATH
+dirname = os.path.dirname(__file__)
+sys.path.insert(0, dirname)
 
 # Expose binaries to PATH
 sep = ';' if os.name == 'nt' else ':'
-dirname = os.path.dirname(__file__)
 os.environ['PATH'] += sep + dirname
 
 # Expose platform plugins
