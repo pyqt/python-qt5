@@ -25,7 +25,7 @@ def get_package_data():
                 relpath = relpath.replace("\\", "/")
                 package_data['PyQt5'].append(subdir + relpath)
 
-    package_data['PyQt5'].extend(["*.exe", "*.dll", "*.pyd", "*.bat"])
+    package_data['PyQt5'].extend(["*.exe", "*.dll", "*.pyd", "*.conf"])
     return package_data
 
 
