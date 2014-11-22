@@ -7,13 +7,15 @@
 
 The goal of this project is to supply PyQt via PyPI, and that's what it does, but currently only for:
 
-- Python 2.7
+- Python 2.7 x64
 - Windows 7+
 - PyQt5 5.3.2 compiled using Qt 5.3.1. 
 
 If you require alternative versions, [contact me][mail] or submit an issue and we'll talk about it.
 
 > Note that these packages are not provided by Riverbank Computing Limited. Please do not contact them if you require help with them.
+
+> Also note that this build is **64-bit** and thus requires a 64-bit build of Python. You are probably already running one.
 
 ### Installation
 
