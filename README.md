@@ -26,6 +26,25 @@ First, make sure you have the Visual Studio C++ 2013 redistributable, available 
 $ pip install python-qt5
 ```
 
+**Testing out the installation**
+
+1. Launch Python
+2. Type this in
+
+  ```python
+>>> import sys
+>>> from PyQt5 import QtWidgets
+>>> app = QtWidgets.QApplication(sys.argv)
+>>> button = QtWidgets.QPushButton("Hello")
+>>> button.show()
+```
+
+### FAQ
+
+> ImportError: DLL load failed: The specified module could not be found.
+
+This may be due to the Visual Studio C++ 2013 redistributable not being installed. Make sure you install this, and then restart Python.
+
 [travis]: https://travis-ci.org/pyqt/python-qt5.svg?branch=master
 [travis_repo]: https://travis-ci.org/pyqt/python-qt5
 [pypi]: https://badge.fury.io/py/python-qt5.svg
