@@ -1,0 +1,7 @@
+python-qt5 Changelog
+====================
+
+Version 1.0.9
+-------------
+
+- Removed qt.conf dependency
