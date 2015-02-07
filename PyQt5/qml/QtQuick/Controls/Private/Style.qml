@@ -48,12 +48,6 @@ import QtQuick.Controls.Private 1.0
 */
 
 AbstractStyle {
-    /*! The control attached to this style */
+    /*! The control this style is attached to. */
     readonly property Item control: __control
-
-    /*! \internal */
-    property var __syspal: SystemPalette {
-        colorGroup: control.enabled ?
-                        SystemPalette.Active : SystemPalette.Disabled
-    }
 }

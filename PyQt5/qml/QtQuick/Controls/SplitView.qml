@@ -51,6 +51,8 @@ import QtQuick.Window 2.1
     \ingroup views
     \brief Lays out items with a draggable splitter between each item.
 
+    \image splitview.png
+
     SplitView is a control that lays out items horizontally or
     vertically with a draggable splitter between each item.
 
@@ -92,26 +94,39 @@ import QtQuick.Window 2.1
     could do the following:
 
     \qml
-       SplitView {
-           anchors.fill: parent
-           orientation: Qt.Horizontal
+    SplitView {
+        anchors.fill: parent
+        orientation: Qt.Horizontal
 
-           Rectangle {
-               width: 200
-               Layout.maximumWidth: 400
-               color: "gray"
-           }
-           Rectangle {
-               id: centerItem
-               Layout.minimumWidth: 50
-               Layout.fillWidth: true
-               color: "darkgray"
-           }
-           Rectangle {
-               width: 200
-               color: "gray"
-           }
-       }
+        Rectangle {
+            width: 200
+            Layout.maximumWidth: 400
+            color: "lightblue"
+            Text {
+                text: "View 1"
+                anchors.centerIn: parent
+            }
+        }
+        Rectangle {
+            id: centerItem
+            Layout.minimumWidth: 50
+            Layout.fillWidth: true
+            color: "lightgray"
+            Text {
+                text: "View 2"
+                anchors.centerIn: parent
+            }
+        }
+        Rectangle {
+            width: 200
+            color: "lightgreen"
+            Text {
+                text: "View 3"
+                anchors.centerIn: parent
+            }
+        }
+    }
+
    \endqml
 */
 
@@ -166,6 +181,18 @@ Item {
     onHeightChanged: d.updateLayout()
     onOrientationChanged: d.changeOrientation()
 
+    /*! Add an item to the end of the view.
+        \since QtQuick.Controls 1.3 */
+    function addItem(item) {
+        d.updateLayoutGuard = true
+
+        d.addItem_impl(item)
+
+        d.calculateImplicitSize()
+        d.updateLayoutGuard = false
+        d.updateFillIndex()
+    }
+
     SystemPalette { id: pal }
 
     QtObject {
@@ -185,28 +212,35 @@ Item {
         property int fillIndex: -1
         property bool updateLayoutGuard: true
 
+        function addItem_impl(item)
+        {
+            // temporarily set fillIndex to new item
+            fillIndex = __items.length
+            if (splitterItems.children.length > 0)
+                handleLoader.createObject(splitterHandles, {"__handleIndex":splitterItems.children.length - 1})
+
+            item.parent = splitterItems
+
+            // should match disconnections in Component.onDestruction
+            item.widthChanged.connect(d.updateLayout)
+            item.heightChanged.connect(d.updateLayout)
+            item.Layout.maximumWidthChanged.connect(d.updateLayout)
+            item.Layout.minimumWidthChanged.connect(d.updateLayout)
+            item.Layout.maximumHeightChanged.connect(d.updateLayout)
+            item.Layout.minimumHeightChanged.connect(d.updateLayout)
+            item.visibleChanged.connect(d.updateFillIndex)
+            item.Layout.fillWidthChanged.connect(d.updateFillIndex)
+            item.Layout.fillHeightChanged.connect(d.updateFillIndex)
+        }
+
         function init()
         {
             for (var i=0; i<__contents.length; ++i) {
                 var item = __contents[i];
                 if (!item.hasOwnProperty("x"))
                     continue
-
-                if (splitterItems.children.length > 0)
-                    handleLoader.createObject(splitterHandles, {"__handleIndex":splitterItems.children.length - 1})
-                item.parent = splitterItems
+                addItem_impl(item)
                 i-- // item was removed from list
-
-                // should match disconnections in Component.onDestruction
-                item.widthChanged.connect(d.updateLayout)
-                item.heightChanged.connect(d.updateLayout)
-                item.Layout.maximumWidthChanged.connect(d.updateLayout)
-                item.Layout.minimumWidthChanged.connect(d.updateLayout)
-                item.Layout.maximumHeightChanged.connect(d.updateLayout)
-                item.Layout.minimumHeightChanged.connect(d.updateLayout)
-                item.visibleChanged.connect(d.updateFillIndex)
-                item.Layout.fillWidthChanged.connect(d.updateFillIndex)
-                item.Layout.fillHeightChanged.connect(d.updateFillIndex)
             }
 
             d.calculateImplicitSize()

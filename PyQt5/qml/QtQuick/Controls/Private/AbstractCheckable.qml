@@ -148,4 +148,14 @@ Control {
             clicked();
         }
     }
+
+    Action {
+        // handle mnemonic
+        text: abstractCheckable.text
+        onTriggered: {
+            if (!abstractCheckable.exclusiveGroup || !abstractCheckable.checked)
+                abstractCheckable.__cycleStatesHandler();
+            abstractCheckable.clicked();
+        }
+    }
 }

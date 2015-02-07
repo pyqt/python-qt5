@@ -48,12 +48,18 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief Displays multiple lines of editable formatted text.
 
+    \image textarea.png
+
     It can display both plain and rich text. For example:
 
     \qml
     TextArea {
         width: 240
-        text: "<b>Hello</b> <i>World!</i>"
+        text:
+            "Lorem ipsum dolor sit amet, consectetur adipisicing elit, " +
+            "sed do eiusmod tempor incididunt ut labore et dolore magna " +
+            "aliqua. Ut enim ad minim veniam, quis nostrud exercitation " +
+            "ullamco laboris nisi ut aliquip ex ea commodo cosnsequat. ";
     }
     \endqml
 
@@ -132,6 +138,14 @@ ScrollView {
     */
     property alias cursorPosition: edit.cursorPosition
 
+    /*!
+        \qmlproperty rect TextArea::cursorRectangle
+        \since QtQuick.Controls 1.3
+
+        The rectangle where the text cursor is rendered within the text area.
+    */
+    readonly property alias cursorRectangle: edit.cursorRectangle
+
     /*! \qmlproperty font TextArea::font
 
         The font of the TextArea.
@@ -183,6 +197,18 @@ ScrollView {
         \endlist
     */
     property alias verticalAlignment: edit.verticalAlignment
+
+    /*!
+        \qmlproperty bool TextArea::inputMethodComposing
+        \since QtQuick.Controls 1.3
+
+        This property holds whether the TextArea has partial text input from an input method.
+
+        While it is composing an input method may rely on mouse or key events from the TextArea
+        to edit or commit the partial text. This property can be used to determine when to disable
+        events handlers that may interfere with the correct operation of an input method.
+    */
+    readonly property bool inputMethodComposing: !!edit.inputMethodComposing
 
     /*!
         \qmlproperty enumeration TextArea::inputMethodHints
@@ -355,7 +381,7 @@ ScrollView {
 
         The default value is \c true.
     */
-    property alias selectByMouse: edit.selectByMouse
+    property bool selectByMouse: true
 
     /*!
         \qmlproperty bool TextArea::selectByKeyboard
@@ -408,6 +434,17 @@ ScrollView {
         and the link string provides access to the particular link.
     */
     readonly property alias hoveredLink: edit.hoveredLink
+
+    /*!
+        \since QtQuick.Controls 1.3
+
+        This property contains the edit \l Menu for working
+        with text selection. Set it to \c null if no menu
+        is wanted.
+
+        \sa Menu
+    */
+    property Component menu: editMenu.defaultMenu
 
     /*!
         \qmlmethod TextArea::append(string)
@@ -642,6 +679,20 @@ ScrollView {
     */
     property alias textMargin: edit.textMargin
 
+    /*! \qmlproperty real TextArea::contentWidth
+        \since QtQuick.Controls 1.3
+
+        The width of the text content.
+    */
+    readonly property alias contentWidth: edit.contentWidth
+
+    /*! \qmlproperty real TextArea::contentHeight
+        \since QtQuick.Controls 1.3
+
+        The height of the text content.
+    */
+    readonly property alias contentHeight: edit.contentHeight
+
     frameVisible: true
 
     activeFocusOnTab: true
@@ -661,12 +712,14 @@ ScrollView {
     Flickable {
         id: flickable
 
-        interactive: false
+        interactive: !edit.selectByMouse
         anchors.fill: parent
 
         TextEdit {
             id: edit
             focus: true
+            cursorDelegate: __style && __style.__cursorDelegate ? __style.__cursorDelegate : null
+            persistentSelection: true
 
             Rectangle {
                 id: colorRect
@@ -715,9 +768,9 @@ ScrollView {
             selectionColor: __style ? __style.selectionColor : "darkred"
             selectedTextColor: __style ? __style.selectedTextColor : "white"
             wrapMode: TextEdit.WordWrap
-            textMargin: 4
+            textMargin: __style && __style.textMargin !== undefined ? __style.textMargin : 4
 
-            selectByMouse: Qt.platform.os !== "android" // Workaround for QTBUG-36515
+            selectByMouse: area.selectByMouse && (!Settings.isMobile || !cursorHandle.delegate || !selectionHandle.delegate)
             readOnly: false
 
             Keys.forwardTo: area
@@ -726,32 +779,175 @@ ScrollView {
             KeyNavigation.tab: area.tabChangesFocus ? area.KeyNavigation.tab : null
             KeyNavigation.backtab: area.tabChangesFocus ? area.KeyNavigation.backtab : null
 
-            // keep textcursor within scroll view
-            onCursorPositionChanged: {
-                if (cursorRectangle.y >= flickableItem.contentY + viewport.height - cursorRectangle.height - textMargin) {
+            property bool blockRecursion: false
+            property bool hasSelection: selectionStart !== selectionEnd
+            readonly property int selectionPosition: selectionStart !== cursorPosition ? selectionStart : selectionEnd
+
+            // force re-evaluation when contentWidth changes => text layout changes => selection moves
+            property rect selectionRectangle: contentWidth ? positionToRectangle(selectionPosition)
+                                                           : positionToRectangle(selectionPosition)
+
+            onSelectionStartChanged: syncHandlesWithSelection()
+            onCursorPositionChanged: syncHandlesWithSelection()
+
+            function syncHandlesWithSelection()
+            {
+                if (!blockRecursion && selectionHandle.delegate) {
+                    blockRecursion = true
+                    // We cannot use property selectionPosition since it gets updated after onSelectionStartChanged
+                    cursorHandle.position = cursorPosition
+                    selectionHandle.position = (selectionStart !== cursorPosition) ? selectionStart : selectionEnd
+                    blockRecursion = false
+                }
+                ensureVisible(cursorRectangle)
+                TextSingleton.updateSelectionItem(area)
+            }
+
+            function ensureVisible(rect) {
+                if (rect.y >= flickableItem.contentY + viewport.height - rect.height - textMargin) {
                     // moving down
-                    flickableItem.contentY = cursorRectangle.y - viewport.height +  cursorRectangle.height + textMargin
-                } else if (cursorRectangle.y < flickableItem.contentY) {
+                    flickableItem.contentY = rect.y - viewport.height +  rect.height + textMargin
+                } else if (rect.y < flickableItem.contentY) {
                     // moving up
-                    flickableItem.contentY = cursorRectangle.y - textMargin
+                    flickableItem.contentY = rect.y - textMargin
                 }
 
-                if (cursorRectangle.x >= flickableItem.contentX + viewport.width - textMargin) {
+                if (rect.x >= flickableItem.contentX + viewport.width - textMargin) {
                     // moving right
-                    flickableItem.contentX = cursorRectangle.x - viewport.width + textMargin
-                } else if (cursorRectangle.x < flickableItem.contentX) {
+                    flickableItem.contentX = rect.x - viewport.width + textMargin
+                } else if (rect.x < flickableItem.contentX) {
                     // moving left
-                    flickableItem.contentX = cursorRectangle.x - textMargin
+                    flickableItem.contentX = rect.x - textMargin
                 }
             }
+
             onLinkActivated: area.linkActivated(link)
             onLinkHovered: area.linkHovered(link)
 
+            function activate() {
+                if (activeFocusOnPress) {
+                    forceActiveFocus()
+                    if (!readOnly)
+                        Qt.inputMethod.show()
+                }
+                cursorHandle.activate()
+                selectionHandle.activate()
+            }
+
+            function moveHandles(cursor, selection) {
+                blockRecursion = true
+                cursorPosition = cursor
+                if (selection === -1) {
+                    selectWord()
+                    selection = selectionStart
+                }
+                selectionHandle.position = selection
+                cursorHandle.position = cursorPosition
+                blockRecursion = false
+            }
+
             MouseArea {
-                parent: area.viewport
+                id: mouseArea
                 anchors.fill: parent
                 cursorShape: edit.hoveredLink ? Qt.PointingHandCursor : Qt.IBeamCursor
-                acceptedButtons: Qt.NoButton
+                acceptedButtons: (edit.selectByMouse ? Qt.NoButton : Qt.LeftButton) | (area.menu ? Qt.RightButton : Qt.NoButton)
+                onClicked: {
+                    if (editMenu.item)
+                        return;
+                    var pos = edit.positionAt(mouse.x, mouse.y)
+                    edit.moveHandles(pos, pos)
+                    edit.activate()
+                }
+                onPressAndHold: {
+                    if (editMenu.item)
+                        return;
+                    var pos = edit.positionAt(mouse.x, mouse.y)
+                    edit.moveHandles(pos, area.selectByMouse ? -1 : pos)
+                    edit.activate()
+                }
+            }
+
+            EditMenu {
+                id: editMenu
+                control: area
+                input: edit
+                mouseArea: mouseArea
+                cursorHandle: cursorHandle
+                selectionHandle: selectionHandle
+                flickable: flickable
+                anchors.fill: parent
+            }
+
+            TextHandle {
+                id: selectionHandle
+
+                editor: edit
+                control: area
+                z: 1 // above scrollbars
+                parent:  Qt.platform.os === "ios"  ? editor : __scroller // no clip
+                active: area.selectByMouse && Settings.isMobile
+                delegate: __style.__selectionHandle
+                maximum: cursorHandle.position - 1
+
+                // Mention contentX and contentY in the mappedPos binding to force re-evaluation if they change
+                property var mappedPos: flickableItem.contentX !== flickableItem.contentY !== Number.MAX_VALUE ?
+                                            parent.mapFromItem(editor, editor.selectionRectangle.x, editor.selectionRectangle.y) : -1
+                x: mappedPos.x
+                y: mappedPos.y
+
+                property var posInViewport: flickableItem.contentX !== flickableItem.contentY !== Number.MAX_VALUE ?
+                                                parent.mapToItem(viewport, handleX, handleY) : -1
+                visible: pressed || (edit.hasSelection
+                                     && posInViewport.y + handleHeight >= -1
+                                     && posInViewport.y <= viewport.height + 1
+                                     && posInViewport.x + handleWidth >= -1
+                                     && posInViewport.x <= viewport.width + 1)
+
+                onPositionChanged: {
+                    if (!edit.blockRecursion) {
+                        edit.blockRecursion = true
+                        edit.select(selectionHandle.position, cursorHandle.position)
+                        if (pressed)
+                            edit.ensureVisible(edit.selectionRectangle)
+                        edit.blockRecursion = false
+                    }
+                }
+            }
+
+            TextHandle {
+                id: cursorHandle
+
+                editor: edit
+                control: area
+                z: 1 // above scrollbars
+                parent:  Qt.platform.os === "ios"  ? editor : __scroller // no clip
+                active: area.selectByMouse && Settings.isMobile
+                delegate: __style.__cursorHandle
+                minimum: edit.hasSelection ? selectionHandle.position + 1 : -1
+
+                // Mention contentX and contentY in the mappedPos binding to force re-evaluation if they change
+                property var mappedPos: flickableItem.contentX !== flickableItem.contentY !== Number.MAX_VALUE ?
+                                            parent.mapFromItem(editor, editor.cursorRectangle.x, editor.cursorRectangle.y) : -1
+                x: mappedPos.x
+                y: mappedPos.y
+
+                property var posInViewport: flickableItem.contentX !== flickableItem.contentY !== Number.MAX_VALUE ?
+                                                parent.mapToItem(viewport, handleX, handleY) : -1
+                visible: pressed || ((edit.cursorVisible || edit.hasSelection)
+                                     && posInViewport.y + handleHeight >= -1
+                                     && posInViewport.y <= viewport.height + 1
+                                     && posInViewport.x + handleWidth >= -1
+                                     && posInViewport.x <= viewport.width + 1)
+
+                onPositionChanged: {
+                    if (!edit.blockRecursion) {
+                        edit.blockRecursion = true
+                        if (!edit.hasSelection)
+                            selectionHandle.position = cursorHandle.position
+                        edit.select(selectionHandle.position, cursorHandle.position)
+                        edit.blockRecursion = false
+                    }
+                }
             }
         }
     }

@@ -261,6 +261,23 @@ Item {
 
     */
     property bool cached: false
+
+    /*!
+        This property determines whether or not the effect has a transparent
+        border.
+
+        When set to \c true, the exterior of the item is padded with a 1 pixel
+        wide transparent edge, making sampling outside the source texture use
+        transparency instead of the edge pixels. Without this property, an
+        image which has opaque edges will not get a blurred edge.
+
+        In the snippet below, the Rectangle on the left has transparent borders
+        and has blurred edges, whereas the Rectangle on the right does not.
+
+        \snippet Glow-transparentBorder-example.qml example
+
+        \image transparentBorder.png
+    */
     property bool transparentBorder: false
 
     Loader {

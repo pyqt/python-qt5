@@ -48,7 +48,19 @@ import QtQuick 2.2
     \brief Tab represents the content of a tab in a TabView.
 
     A Tab item inherits from Loader and provides a similar
-    api.
+    API.
+
+    Tabs are lazily loaded; only tabs that have been made current (for example,
+    by clicking on them) will have valid content. You can force loading of tabs
+    by setting the active property to \c true:
+
+    \code
+    Tab {
+        active: true
+    }
+    \endcode
+
+    \sa TabView
 */
 
 Loader {

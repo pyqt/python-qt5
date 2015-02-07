@@ -49,8 +49,33 @@ import QtQuick.Controls.Private 1.0
     \ingroup views
     \brief A control that allows the user to select one of multiple stacked items.
 
-    You can create a custom appearance for a TabView by
+    \image tabview.png
+
+    TabView provides tab-based navigation model for your application.
+    For example, the following snippet uses tabs to present rectangles of
+    different color on each tab page:
+
+    \qml
+    TabView {
+        Tab {
+            title: "Red"
+            Rectangle { color: "red" }
+        }
+        Tab {
+            title: "Blue"
+            Rectangle { color: "blue" }
+        }
+        Tab {
+            title: "Green"
+            Rectangle { color: "green" }
+        }
+    }
+    \endqml
+
+    \note You can create a custom appearance for a TabView by
     assigning a \l {QtQuick.Controls.Styles::TabViewStyle}{TabViewStyle}.
+
+    \l Tab represents the content of a tab in a TabView.
 */
 
 FocusScope {
@@ -80,6 +105,16 @@ FocusScope {
         \endlist
     */
     property int tabPosition: Qt.TopEdge
+
+    /*!
+        \qmlproperty Item TabView::contentItem
+        \since QtQuick.Controls 1.3
+
+        This property holds the content item of the tab view.
+
+        Tabs declared as children of a TabView are automatically parented to the TabView's contentItem.
+     */
+    readonly property alias contentItem: stack
 
     /*! \internal */
     default property alias data: stack.data

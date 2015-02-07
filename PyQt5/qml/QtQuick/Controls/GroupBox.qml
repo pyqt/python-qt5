@@ -51,6 +51,8 @@ import QtQuick.Layouts 1.0
     \ingroup controls
     \brief GroupBox provides a group box frame with a title.
 
+    \image groupbox.png
+
     A group box provides a frame, a title on top and displays various other controls inside itself. Group boxes can also be checkable.
 
     Child controls in checkable group boxes are enabled or disabled depending on whether or not the group box is checked.
@@ -63,24 +65,29 @@ import QtQuick.Layouts 1.0
     The implicit size of the GroupBox is calculated based on the size of its content. If you want to anchor
     items inside the group box, you must specify an explicit width and height on the GroupBox itself.
 
-    The following example shows how we use a GroupBox with a column:
+    The following example shows how we use a GroupBox:
 
     \qml
-        GroupBox {
-            title: qsTr("Package selection")
-            Column {
-                spacing: 2
-                CheckBox {
-                    text: qsTr("Update system")
-                }
-                CheckBox {
-                    text: qsTr("Update applications")
-                }
-                CheckBox {
-                    text: qsTr("Update documentation")
-                }
+    GroupBox {
+        title: "Joining for?"
+
+        Column {
+            spacing: 10
+
+            CheckBox {
+                text: "Breakfast"
+                checked: true
+            }
+            CheckBox {
+                text: "Lunch"
+                checked: false
+            }
+            CheckBox {
+                text: "Dinner"
+                checked: true
             }
         }
+    }
     \endqml
 
     \sa CheckBox, RadioButton, Layout

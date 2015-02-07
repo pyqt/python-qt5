@@ -81,7 +81,7 @@ import QtQuick.Controls.Private 1.0
 
 Style {
 
-    /*! The \l ScrollView attached to this style. */
+    /*! The \l ScrollView this style is attached to. */
     readonly property TabView control: __control
 
     /*! This property holds whether the user can move the tabs.
@@ -128,6 +128,7 @@ Style {
             \row \li readonly property string \b styleData.title \li Tab title text.
             \row \li readonly property bool \b styleData.nextSelected \li The next tab is selected.
             \row \li readonly property bool \b styleData.previousSelected \li The previous tab is selected.
+            \row \li readonly property bool \b styleData.pressed \li The tab is being pressed. (since QtQuick.Controls.Styles 1.3)
             \row \li readonly property bool \b styleData.hovered \li The tab is being hovered.
             \row \li readonly property bool \b styleData.enabled \li The tab is enabled. (since QtQuick.Controls.Styles 1.2)
             \row \li readonly property bool \b styleData.activeFocus \li The tab button has keyboard focus.
@@ -166,13 +167,9 @@ Style {
             horizontalAlignment: Text.AlignHCenter
             text: styleData.title
             elide: Text.ElideMiddle
-            renderType: Text.NativeRendering
+            renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
             scale: control.tabPosition === Qt.TopEdge ? 1 : -1
-            property var __syspal: SystemPalette {
-                colorGroup: styleData.enabled ?
-                                SystemPalette.Active : SystemPalette.Disabled
-            }
-            color: __syspal.text
+            color: SystemPaletteSingleton.text(styleData.enabled)
             Rectangle {
                 anchors.centerIn: parent
                 width: textitem.paintedWidth + 6

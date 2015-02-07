@@ -50,19 +50,27 @@ import QtQuick.Controls.Private 1.0
     \ingroup applicationwindow
     \brief Provides a horizontal menu bar.
 
-    \code
-    MenuBar {
-        Menu {
-            title: "File"
-            MenuItem { text: "Open..." }
-            MenuItem { text: "Close" }
-        }
+    \image menubar.png
 
-        Menu {
-            title: "Edit"
-            MenuItem { text: "Cut" }
-            MenuItem { text: "Copy" }
-            MenuItem { text: "Paste" }
+    MenuBar can be added to an \l ApplicationWindow, providing menu options
+    to access additional functionality of the application.
+
+    \code
+    ApplicationWindow {
+        ...
+        menuBar: MenuBar {
+            Menu {
+                title: "File"
+                MenuItem { text: "Open..." }
+                MenuItem { text: "Close" }
+            }
+
+            Menu {
+                title: "Edit"
+                MenuItem { text: "Cut" }
+                MenuItem { text: "Copy" }
+                MenuItem { text: "Paste" }
+            }
         }
     }
     \endcode
@@ -76,13 +84,29 @@ MenuBarPrivate {
     property Component style: Qt.createComponent(Settings.style + "/MenuBarStyle.qml", root)
 
     /*! \internal */
+    property QtObject __style: styleLoader.item
+
+    __isNative: !__style.hasOwnProperty("__isNative") || __style.__isNative
+
+    /*! \internal */
     __contentItem: Loader {
         id: topLoader
         sourceComponent: __menuBarComponent
         active: !root.__isNative
         focus: true
         Keys.forwardTo: [item]
+        property real preferredWidth: parent && active ? parent.width : 0
         property bool altPressed: item ? item.__altPressed : false
+
+        Loader {
+            id: styleLoader
+            property alias __control: topLoader.item
+            sourceComponent: root.style
+            onStatusChanged: {
+                if (status === Loader.Error)
+                    console.error("Failed to load Style for", root)
+            }
+        }
     }
 
     /*! \internal */
@@ -95,17 +119,7 @@ MenuBarPrivate {
         visible: status === Loader.Ready
         sourceComponent: d.style ? d.style.background : undefined
 
-        Loader {
-            id: styleLoader
-            property alias __control: menuBarLoader
-            sourceComponent: root.style
-            onStatusChanged: {
-                if (status === Loader.Error)
-                    console.error("Failed to load Style for", root)
-            }
-        }
-
-        width: root.__contentItem.width
+        width: implicitWidth || root.__contentItem.preferredWidth
         height: Math.max(row.height + d.heightPadding, item ? item.implicitHeight : 0)
 
         Binding {
@@ -118,7 +132,7 @@ MenuBarPrivate {
         QtObject {
             id: d
 
-            property Style style: styleLoader.item
+            property Style style: __style
 
             property int openedMenuIndex: -1
             property bool preselectMenuItem: false
@@ -238,8 +252,8 @@ MenuBarPrivate {
                             if (d.openedMenuIndex === index) {
                                 if (__menuItem.__usingDefaultStyle)
                                     __menuItem.style = d.style.menuStyle
-                                __menuItem.__popup(row.LayoutMirroring.enabled ? menuItemLoader.width : 0,
-                                                   menuBarLoader.height - d.heightPadding, 0)
+                                __menuItem.__popup(Qt.rect(row.LayoutMirroring.enabled ? menuItemLoader.width : 0,
+                                                   menuBarLoader.height - d.heightPadding, 0, 0), 0)
                                 if (d.preselectMenuItem)
                                     __menuItem.__currentIndex = 0
                             } else {

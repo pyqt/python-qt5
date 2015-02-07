@@ -49,10 +49,18 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief A push button with a text label.
 
+    \image button.png
+
     The push button is perhaps the most commonly used widget in any graphical
     user interface. Pushing (or clicking) a button commands the computer to
     perform some action or answer a question. Common examples of buttons are
     OK, Apply, Cancel, Close, Yes, No, and Help buttons.
+
+    \qml
+    Button {
+        text: "Button"
+    }
+    \endqml
 
     Button is similar to the QPushButton widget.
 
@@ -101,7 +109,11 @@ BasicButton {
     Connections {
         target: __behavior
         onEffectivePressedChanged: {
-            if (__behavior.effectivePressed && menu)
+            if (!Settings.hasTouchScreen && __behavior.effectivePressed && menu)
+                popupMenuTimer.start()
+        }
+        onReleased: {
+            if (Settings.hasTouchScreen && __behavior.containsMouse && menu)
                 popupMenuTimer.start()
         }
     }
@@ -112,9 +124,9 @@ BasicButton {
         onTriggered: {
             __behavior.keyPressed = false
             if (Qt.application.layoutDirection === Qt.RightToLeft)
-                menu.__popup(button.width, button.height, 0)
+                menu.__popup(Qt.rect(button.width, button.height, 0, 0), 0)
             else
-                menu.__popup(0, button.height, 0)
+                menu.__popup(Qt.rect(0, button.height, 0, 0), 0)
         }
     }
 }

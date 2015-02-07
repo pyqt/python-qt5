@@ -49,14 +49,34 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief Provides a button type that is typically used within a ToolBar.
 
-     ToolButton is functionally similar to \l {QtQuick.Controls::}{Button}, but
-     can provide a look that is more suitable within a \l ToolBar.
+    \image toolbar.png
 
-     \code
-     ToolButton {
-        iconSource: "edit-cut.png"
-     }
-     \endcode
+    ToolButton is functionally similar to \l {QtQuick.Controls::}{Button}, but
+    can provide a look that is more suitable within a \l ToolBar.
+
+    \qml
+    ApplicationWindow {
+        ...
+        toolBar:ToolBar {
+            RowLayout {
+                ToolButton {
+                    iconSource: "new.png"
+                }
+                ToolButton {
+                    iconSource: "open.png"
+                }
+                ToolButton {
+                    iconSource: "save-as.png"
+                }
+                Item { Layout.fillWidth: true }
+                CheckBox {
+                    text: "Enabled"
+                    checked: true
+                }
+            }
+        }
+    }
+    \endqml
 
     You can create a custom appearance for a ToolButton by
     assigning a \l {QtQuick.Controls.Styles::ButtonStyle}{ButtonStyle}.

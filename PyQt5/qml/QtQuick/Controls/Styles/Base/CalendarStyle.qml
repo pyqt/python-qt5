@@ -125,7 +125,7 @@ Style {
     id: calendarStyle
 
     /*!
-        The Calendar attached to this style.
+        The Calendar this style is attached to.
     */
     readonly property Calendar control: __control
 
@@ -148,6 +148,12 @@ Style {
     */
     property real __gridLineWidth: 1
 
+    /*! \internal */
+    property color __horizontalSeparatorColor: gridColor
+
+    /*! \internal */
+    property color __verticalSeparatorColor: gridColor
+
     function __cellRectAt(index) {
         return CalendarUtils.cellRectAt(index, control.__panel.columns, control.__panel.rows,
             control.__panel.availableWidth, control.__panel.availableHeight, gridVisible ? __gridLineWidth : 0);
@@ -166,8 +172,8 @@ Style {
     */
     property Component background: Rectangle {
         color: "#fff"
-        implicitWidth: 250
-        implicitHeight: 250
+        implicitWidth: Math.max(250, Math.round(TextSingleton.implicitHeight * 14))
+        implicitHeight: Math.max(250, Math.round(TextSingleton.implicitHeight * 14))
     }
 
     /*!
@@ -183,7 +189,7 @@ Style {
         \endtable
     */
     property Component navigationBar: Rectangle {
-        height: 41
+        height: Math.round(TextSingleton.implicitHeight * 2.73)
         color: "#f9f9f9"
 
         Rectangle {
@@ -212,7 +218,7 @@ Style {
             text: styleData.title
             elide: Text.ElideRight
             horizontalAlignment: Text.AlignHCenter
-            font.pointSize: 14
+            font.pixelSize: TextSingleton.implicitHeight * 1.25
             anchors.verticalCenter: parent.verticalCenter
             anchors.left: previousMonth.right
             anchors.leftMargin: 2
@@ -266,7 +272,7 @@ Style {
 
         readonly property bool addExtraMargin: control.frameVisible && styleData.selected
         readonly property color sameMonthDateTextColor: "#444"
-        readonly property color selectedDateColor: Qt.platform.os === "osx" ? "#3778d0" : __syspal.highlight
+        readonly property color selectedDateColor: Qt.platform.os === "osx" ? "#3778d0" : SystemPaletteSingleton.highlight(control.enabled)
         readonly property color selectedDateTextColor: "white"
         readonly property color differentMonthDateTextColor: "#bbb"
         readonly property color invalidDateColor: "#dddddd"
@@ -313,7 +319,7 @@ Style {
     */
     property Component dayOfWeekDelegate: Rectangle {
         color: gridVisible ? "#fcfcfc" : "transparent"
-        implicitHeight: 40
+        implicitHeight: Math.round(TextSingleton.implicitHeight * 2.25)
         Label {
             text: control.__locale.dayName(styleData.dayOfWeek, control.dayOfWeekFormat)
             anchors.centerIn: parent
@@ -334,7 +340,7 @@ Style {
         \endtable
     */
     property Component weekNumberDelegate: Rectangle {
-        implicitWidth: 30
+        implicitWidth: Math.round(TextSingleton.implicitHeight * 2)
         Label {
             text: styleData.weekNumber
             anchors.centerIn: parent
@@ -363,6 +369,7 @@ Style {
 
         property int hoveredCellIndex: -1
         property int pressedCellIndex: -1
+        property int pressCellIndex: -1
 
         Rectangle {
             anchors.fill: parent
@@ -388,6 +395,7 @@ Style {
                 anchors.right: parent.right
                 anchors.top: parent.top
                 sourceComponent: navigationBar
+                active: control.navigationBarVisible
 
                 property QtObject styleData: QtObject {
                     readonly property string title: control.__locale.standaloneMonthName(control.visibleMonth)
@@ -426,7 +434,7 @@ Style {
 
             Rectangle {
                 id: topGridLine
-                color: gridColor
+                color: __horizontalSeparatorColor
                 width: parent.width
                 height: __gridLineWidth
                 visible: gridVisible
@@ -482,7 +490,7 @@ Style {
                     anchors.bottom: weekNumbersItem.bottom
 
                     width: __gridLineWidth
-                    color: gridColor
+                    color: __verticalSeparatorColor
                     visible: control.weekNumbersVisible
                 }
 
@@ -573,10 +581,10 @@ Style {
                         }
 
                         onPressed: {
-                            var indexOfCell = cellIndexAt(mouse.x, mouse.y);
-                            if (indexOfCell !== -1) {
-                                var date = view.model.dateAt(indexOfCell);
-                                pressedCellIndex = indexOfCell;
+                            pressCellIndex = cellIndexAt(mouse.x, mouse.y);
+                            if (pressCellIndex !== -1) {
+                                var date = view.model.dateAt(pressCellIndex);
+                                pressedCellIndex = pressCellIndex;
                                 if (__isValidDate(date)) {
                                     control.selectedDate = date;
                                     control.pressed(date);
@@ -600,7 +608,7 @@ Style {
 
                         onClicked: {
                             var indexOfCell = cellIndexAt(mouse.x, mouse.y);
-                            if (indexOfCell !== -1) {
+                            if (indexOfCell !== -1 && indexOfCell === pressCellIndex) {
                                 var date = view.model.dateAt(indexOfCell);
                                 if (__isValidDate(date))
                                     control.clicked(date);
@@ -613,6 +621,15 @@ Style {
                                 var date = view.model.dateAt(indexOfCell);
                                 if (__isValidDate(date))
                                     control.doubleClicked(date);
+                            }
+                        }
+
+                        onPressAndHold: {
+                            var indexOfCell = cellIndexAt(mouse.x, mouse.y);
+                            if (indexOfCell !== -1 && indexOfCell === pressCellIndex) {
+                                var date = view.model.dateAt(indexOfCell);
+                                if (__isValidDate(date))
+                                    control.pressAndHold(date);
                             }
                         }
                     }

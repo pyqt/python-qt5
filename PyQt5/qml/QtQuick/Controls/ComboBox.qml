@@ -49,7 +49,10 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief Provides a drop-down list functionality.
 
-    Add items to the comboBox by assigning it a ListModel, or a list of strings to the \l model property.
+    \image combobox.png
+
+    Add items to the ComboBox by assigning it a ListModel, or a list of strings
+    to the \l model property.
 
     \qml
        ComboBox {
@@ -90,9 +93,9 @@ import QtQuick.Controls.Private 1.0
                 ListElement { text: "Coconut"; color: "Brown" }
             }
             onAccepted: {
-                if (editableCombo.find(currentText) === -1) {
+                if (find(currentText) === -1) {
                     model.append({text: editText})
-                    currentIndex = editableCombo.find(editText)
+                    currentIndex = find(editText)
                 }
             }
         }
@@ -153,13 +156,13 @@ Control {
     /*! \qmlproperty bool ComboBox::pressed
 
         This property holds whether the button is being pressed. */
-    readonly property bool pressed: mouseArea.pressed && mouseArea.containsMouse || popup.__popupVisible
+    readonly property bool pressed: mouseArea.effectivePressed || popup.__popupVisible
 
     /*! \qmlproperty bool ComboBox::hovered
 
         This property indicates whether the control is being hovered.
     */
-    readonly property alias hovered: mouseArea.containsMouse
+    readonly property bool hovered: mouseArea.containsMouse || input.containsMouse
 
     /*! \qmlproperty int ComboBox::count
         \since QtQuick.Controls 1.1
@@ -219,6 +222,17 @@ Control {
     property alias validator: input.validator
 
     /*!
+        \since QtQuick.Controls 1.3
+
+        This property contains the edit \l Menu for working
+        with text selection. Set it to \c null if no menu
+        is wanted.
+
+        \note The menu is only in use when \l editable is \c true
+    */
+    property Component menu: input.editMenu.defaultMenu
+
+    /*!
         \qmlproperty bool ComboBox::acceptableInput
         \since QtQuick.Controls 1.1
 
@@ -233,6 +247,29 @@ Control {
 
     */
     readonly property alias acceptableInput: input.acceptableInput
+
+    /*!
+        \qmlproperty bool ComboBox::selectByMouse
+        \since QtQuick.Controls 1.3
+
+        This property determines if the user can select the text in
+        the editable text field with the mouse.
+
+        The default value is \c true.
+    */
+    property bool selectByMouse: true
+
+    /*!
+        \qmlproperty bool ComboBox::inputMethodComposing
+        \since QtQuick.Controls 1.3
+
+        This property holds whether an editable ComboBox has partial text input from an input method.
+
+        While it is composing an input method may rely on mouse or key events from the ComboBox
+        to edit or commit the partial text. This property can be used to determine when to disable
+        events handlers that may interfere with the correct operation of an input method.
+    */
+    readonly property bool inputMethodComposing: !!input.inputMethodComposing
 
     /*!
         \qmlsignal ComboBox::accepted()
@@ -309,12 +346,23 @@ Control {
 
     MouseArea {
         id: mouseArea
+        property bool overridePressed: false
+        readonly property bool effectivePressed: (pressed || overridePressed) && containsMouse
         anchors.fill: parent
         hoverEnabled: true
         onPressed: {
             if (comboBox.activeFocusOnPress)
                 forceActiveFocus()
-            popup.show()
+            if (!Settings.hasTouchScreen)
+                popup.toggleShow()
+            else
+                overridePressed = true
+        }
+        onCanceled: overridePressed = false
+        onClicked: {
+            if (Settings.hasTouchScreen)
+                popup.toggleShow()
+            overridePressed = false
         }
         onWheel: {
             if (wheel.angleDelta.y > 0) {
@@ -344,7 +392,7 @@ Control {
         }
     }
 
-    TextInput {
+    TextInputWithHandles {
         id: input
 
         visible: editable
@@ -352,17 +400,23 @@ Control {
         focus: true
         clip: contentWidth > width
 
+        control: comboBox
+        cursorHandle: __style ? __style.__cursorHandle : undefined
+        selectionHandle: __style ? __style.__selectionHandle : undefined
+
         anchors.fill: parent
-        anchors.leftMargin: 8
-        anchors.rightMargin: __style.dropDownButtonWidth + __style.padding.right
+        anchors.leftMargin: __style ? __style.padding.left : 0
+        anchors.topMargin: __style ? __style.padding.top : 0
+        anchors.rightMargin: __style ? __panel.dropDownButtonWidth + __style.padding.right : 0
+        anchors.bottomMargin: __style ? __style.padding.bottom: 0
 
         verticalAlignment: Text.AlignVCenter
 
+        font: __panel && __panel.font !== undefined ? __panel.font : TextSingleton.font
         renderType: __style ? __style.renderType : Text.NativeRendering
-        selectByMouse: true
-        color: __style.__syspal.text
-        selectionColor: __style.__syspal.highlight
-        selectedTextColor: __style.__syspal.highlightedText
+        color: __panel ? __panel.textColor : "black"
+        selectionColor: __panel ? __panel.selectionColor : "blue"
+        selectedTextColor: __panel ? __panel.selectedTextColor : "white"
         onAccepted: {
             var idx = input.find(editText, Qt.MatchFixedString)
             if (idx > -1) {
@@ -571,14 +625,18 @@ Control {
                 updateSelectedText()
         }
 
-        function show() {
-            if (items[__selectedIndex])
-                items[__selectedIndex].checked = true
-            __currentIndex = comboBox.currentIndex
-            if (Qt.application.layoutDirection === Qt.RightToLeft)
-                __popup(comboBox.width, y, isPopup ? __selectedIndex : 0)
-            else
-                __popup(0, y, isPopup ? __selectedIndex : 0)
+        function toggleShow() {
+            if (popup.__popupVisible) {
+                popup.__dismissMenu()
+            } else {
+                if (items[__selectedIndex])
+                    items[__selectedIndex].checked = true
+                __currentIndex = comboBox.currentIndex
+                if (Qt.application.layoutDirection === Qt.RightToLeft)
+                    __popup(Qt.rect(comboBox.width, y, 0, 0), isPopup ? __selectedIndex : 0)
+                else
+                    __popup(Qt.rect(0, y, 0, 0), isPopup ? __selectedIndex : 0)
+            }
         }
 
         function updateSelectedText() {
@@ -595,8 +653,7 @@ Control {
     // The key bindings below will only be in use when popup is
     // not visible. Otherwise, native popup key handling will take place:
     Keys.onSpacePressed: {
-        if (!popup.popupVisible)
-            popup.show()
+        popup.toggleShow()
     }
 
     Keys.onUpPressed: __selectPrevItem()

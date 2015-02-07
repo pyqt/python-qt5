@@ -51,12 +51,7 @@ import QtQuick.Controls.Private 1.0
 Style {
     id: root
 
-    /*! \internal */
-    property var __syspal: SystemPalette {
-        colorGroup: control.enabled ?
-                        SystemPalette.Active : SystemPalette.Disabled
-    }
-    /*! The \l ScrollView attached to this style. */
+    /*! The \l ScrollView this style is attached to. */
     readonly property ScrollView control: __control
 
     /*! This property controls the frame border padding of the scrollView. */
@@ -264,15 +259,19 @@ Style {
 
         states: State {
             name: "out"
-            when: isTransient && panel.activeControl === "none" && !panel.on && !panel.raised
+            when: isTransient
+                  && (!__stickyScrollbars || !flickableItem.moving)
+                  && panel.activeControl === "none"
+                  && !panel.on
+                  && !panel.raised
             PropertyChanges { target: panel; opacity: 0 }
         }
 
         transitions: Transition {
             to: "out"
             SequentialAnimation {
-                PauseAnimation { duration: 450 }
-                NumberAnimation { properties: "opacity"; duration: 200 }
+                PauseAnimation { duration: root.__scrollBarFadeDelay }
+                NumberAnimation { properties: "opacity"; duration: root.__scrollBarFadeDuration }
                 PropertyAction { target: panel; property: "visible"; value: false }
             }
         }
@@ -397,4 +396,10 @@ Style {
     property bool __externalScrollBars: false
     /*! \internal */
     property int __scrollBarSpacing: 4
+    /*! \internal */
+    property int __scrollBarFadeDelay: 450
+    /*! \internal */
+    property int __scrollBarFadeDuration: 200
+    /*! \internal */
+    property bool __stickyScrollbars: false
 }

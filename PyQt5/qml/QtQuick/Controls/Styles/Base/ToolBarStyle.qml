@@ -104,6 +104,21 @@ Style {
         }
     }
 
+    /*! This defines the menu button appearance on platforms
+        that have a unified tool bar and menu bar.
+
+        \since QtQuick.Controls.Styles 1.3
+
+        The following read-only properties are available within the scope
+        of the menu button delegate:
+        \table
+            \row \li \b {styleData.pressed} : bool \li Whether the button is pressed.
+            \row \li \b {styleData.hovered} : bool \li Whether the button is hovered.
+            \row \li \b {styleData.activeFocus} : bool \li Whether the button has active focus.
+        \endtable
+    */
+    property Component menuButton: null
+
     property Component panel: Loader {
         sourceComponent: background
     }

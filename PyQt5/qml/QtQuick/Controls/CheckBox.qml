@@ -49,6 +49,8 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief A checkbox with a text label.
 
+    \image checkbox.png
+
     A CheckBox is an option button that can be toggled on (checked) or off
     (unchecked). Checkboxes are typically used to represent features in an
     application that can be enabled or disabled without affecting others.
@@ -74,12 +76,14 @@ import QtQuick.Controls.Private 1.0
     Column {
         CheckBox {
             text: qsTr("Breakfast")
+            checked: true
         }
         CheckBox {
             text: qsTr("Lunch")
         }
         CheckBox {
             text: qsTr("Dinner")
+            checked: true
         }
     }
     \endqml

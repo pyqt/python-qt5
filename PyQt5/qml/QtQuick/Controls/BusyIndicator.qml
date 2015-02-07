@@ -49,8 +49,18 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief A busy indicator.
 
+    \image busyindicator.png
+
     The busy indicator should be used to indicate activity while content is
     being loaded or the UI is blocked waiting for a resource to become available.
+
+    The following snippet shows how to use the BusyIndicator:
+
+    \qml
+    BusyIndicator {
+        running: image.status === Image.Loading
+    }
+    \endqml
 
     You can create a custom appearance for a Busy Indicator by
     assigning a \l {QtQuick.Controls.Styles::BusyIndicatorStyle}{BusyIndicatorStyle}.

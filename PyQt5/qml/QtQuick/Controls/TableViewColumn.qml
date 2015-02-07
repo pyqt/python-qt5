@@ -46,6 +46,21 @@ import QtQuick 2.2
     \since 5.1
     \ingroup viewitems
     \brief Used to define columns in a \l TableView.
+
+    \image tableview.png
+
+    TableViewColumn represents a column within a TableView. It provides
+    properties to decide how the data in that column is presented.
+
+    \qml
+    TableView {
+        TableViewColumn { role: "title"; title: "Title"; width: 100 }
+        TableViewColumn { role: "author"; title: "Author"; width: 200 }
+        model: libraryModel
+    }
+    \endqml
+
+    \sa TableView
 */
 
 QtObject {

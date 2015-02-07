@@ -76,13 +76,8 @@ import QtQuick.Controls.Private 1.0
 Style {
     id: checkboxStyle
 
-    /*! The \l CheckBox attached to this style. */
+    /*! The \l CheckBox this style is attached to. */
     readonly property CheckBox control: __control
-    /*! \internal */
-    property var __syspal: SystemPalette {
-        colorGroup: control.enabled ?
-                        SystemPalette.Active : SystemPalette.Disabled
-    }
 
     /*! This defines the text label. */
     property Component label: Item {
@@ -103,10 +98,10 @@ Style {
         }
         Text {
             id: text
-            text: control.text
+            text: StyleHelpers.stylizeMnemonics(control.text)
             anchors.centerIn: parent
-            color: __syspal.text
-            renderType: Text.NativeRendering
+            color: SystemPaletteSingleton.text(control.enabled)
+            renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
         }
     }
     /*! The background under indicator and label. */

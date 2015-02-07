@@ -1,46 +1,38 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the test suite of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
+** a written agreement between you and Digia. For licensing terms and
+** conditions see http://qt.digia.com/licensing. For further information
 ** use the contact form at http://qt.digia.com/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 2.1 requirements
-** will be met: http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
 ** In addition, as a special exception, Digia gives you certain additional
-** rights.  These rights are described in the Digia Qt LGPL Exception
+** rights. These rights are described in the Digia Qt LGPL Exception
 ** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
-**
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 3.0 as published by the Free Software
-** Foundation and appearing in the file LICENSE.GPL included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU General Public License version 3.0 requirements will be
-** met: http://www.gnu.org/copyleft/gpl.html.
-**
 **
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
 
 import QtQuick 2.0
-import QtTest 1.0
+import QtTest 1.1
 import "testlogger.js" as TestLogger
 import Qt.test.qtestroot 1.0
 
@@ -109,7 +101,7 @@ import Qt.test.qtestroot 1.0
 
     \code
     import QtQuick 2.0
-    import QtTest 1.0
+    import QtTest 1.1
 
     TestCase {
         name: "DataTests"
@@ -626,7 +618,7 @@ Item {
         \code
         var image = grabImage(rect);
         compare(image.red(10, 10), 255);
-        compare(image.pixel(20, 20), Qt.rgba(255, 0, 0, 255);
+        compare(image.pixel(20, 20), Qt.rgba(255, 0, 0, 255));
         \endcode
 
         \endlist
@@ -635,6 +627,49 @@ Item {
     */
     function grabImage(item) {
         return qtest_results.grabImage(item);
+    }
+
+    /*!
+        \since 5.4
+        \qmlmethod QtObject TestCase::findChild(parent, objectName)
+
+        Returns the first child of \a parent with \a objectName, or \c null if
+        no such item exists. Both visual and non-visual children are searched
+        recursively, with visual children being searched first.
+
+        \code
+        compare(findChild(item, "childObject"), expectedChildObject);
+        \endcode
+    */
+    function findChild(parent, objectName) {
+        // First, search the visual item hierarchy.
+        var child = qtest_findVisualChild(parent, objectName);
+        if (child)
+            return child;
+
+        // If it's not a visual child, it might be a QObject child.
+        return qtest_results.findChild(parent, objectName);
+    }
+
+    /*! \internal */
+    function qtest_findVisualChild(parent, objectName) {
+        if (!parent || parent.children === undefined)
+            return null;
+
+        for (var i = 0; i < parent.children.length; ++i) {
+            // Is this direct child of ours the child we're after?
+            var child = parent.children[i];
+            if (child.objectName === objectName)
+                return child;
+        }
+
+        for (i = 0; i < parent.children.length; ++i) {
+            // Try the direct child's children.
+            child = qtest_findVisualChild(parent.children[i], objectName);
+            if (child)
+                return child;
+        }
+        return null;
     }
 
     /*!

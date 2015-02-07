@@ -49,6 +49,8 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief Provides a spin box control.
 
+    \image spinbox.png
+
     SpinBox allows the user to choose a value by clicking the up or down buttons, or by
     pressing up or down on the keyboard. The user can also type the value in manually.
 
@@ -162,7 +164,8 @@ Control {
 
         This property indicates whether the control is being hovered.
     */
-    readonly property alias hovered: mouseArea.containsMouse
+    readonly property bool hovered: mouseArea.containsMouse || input.containsMouse
+                                    || mouseUp.containsMouse || mouseDown.containsMouse
 
     /*!
         \qmlsignal SpinBox::editingFinished()
@@ -176,6 +179,38 @@ Control {
         The corresponding handler is \c onEditingFinished.
     */
     signal editingFinished()
+
+    /*!
+        \qmlproperty bool SpinBox::selectByMouse
+        \since QtQuick.Controls 1.3
+
+        This property determines if the user can select the text with the
+        mouse.
+
+        The default value is \c true.
+    */
+    property bool selectByMouse: true
+
+    /*!
+        \qmlproperty bool SpinBox::inputMethodComposing
+        \since QtQuick.Controls 1.3
+
+        This property holds whether the SpinBox has partial text input from an input method.
+
+        While it is composing an input method may rely on mouse or key events from the SpinBox
+        to edit or commit the partial text. This property can be used to determine when to disable
+        events handlers that may interfere with the correct operation of an input method.
+    */
+    readonly property bool inputMethodComposing: !!input.inputMethodComposing
+
+    /*!
+        \since QtQuick.Controls 1.3
+
+        This property contains the edit \l Menu for working
+        with text selection. Set it to \c null if no menu
+        is wanted.
+    */
+    property Component menu: input.editMenu.defaultMenu
 
     style: Qt.createComponent(Settings.style + "/SpinBoxStyle.qml", spinbox)
 
@@ -246,7 +281,7 @@ Control {
         }
     }
 
-    TextInput {
+    TextInputWithHandles {
         id: input
         clip: contentWidth > width
         anchors.fill: parent
@@ -255,12 +290,15 @@ Control {
         anchors.rightMargin: __style ? __style.padding.right: 0
         anchors.bottomMargin: __style ? __style.padding.bottom: 0
 
+        control: spinbox
+        cursorHandle: __style ? __style.__cursorHandle : undefined
+        selectionHandle: __style ? __style.__selectionHandle : undefined
+
         focus: true
         activeFocusOnPress: spinbox.activeFocusOnPress
 
         horizontalAlignment: spinbox.horizontalAlignment
         verticalAlignment: __panel ? __panel.verticalAlignment : Qt.AlignVCenter
-        selectByMouse: activeFocus || activeFocusOnPress
         inputMethodHints: Qt.ImhFormattedNumbersOnly
 
         validator: SpinBoxValidator {
@@ -278,6 +316,7 @@ Control {
 
         onEditingFinished: spinbox.editingFinished()
 
+        font: __panel ? __panel.font : TextSingleton.font
         color: __panel ? __panel.foregroundColor : "black"
         selectionColor: __panel ? __panel.selectionColor : "black"
         selectedTextColor: __panel ? __panel.selectedTextColor : "black"
@@ -309,7 +348,7 @@ Control {
         height: upRect ? upRect.height : 0
 
         onClicked: __increment()
-        onPressed: if (activeFocusOnPress) input.forceActiveFocus()
+        onPressed: if (!Settings.hasTouchScreen && activeFocusOnPress) input.forceActiveFocus()
 
         property bool autoincrement: false;
         onReleased: autoincrement = false
@@ -325,7 +364,7 @@ Control {
         hoverEnabled: true
 
         onClicked: __decrement()
-        onPressed: if (activeFocusOnPress) input.forceActiveFocus()
+        onPressed: if (!Settings.hasTouchScreen && activeFocusOnPress) input.forceActiveFocus()
 
         property var downRect: __panel ? __panel.downRect : null
 

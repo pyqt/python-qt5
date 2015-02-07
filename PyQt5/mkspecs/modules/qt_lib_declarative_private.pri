@@ -1,0 +1,9 @@
+QT.declarative_private.VERSION = 5.4.0
+QT.declarative_private.MAJOR_VERSION = 5
+QT.declarative_private.MINOR_VERSION = 4
+QT.declarative_private.PATCH_VERSION = 0
+QT.declarative_private.name = QtDeclarative
+QT.declarative_private.libs = $$QT_MODULE_LIB_BASE
+QT.declarative_private.includes = $$QT_MODULE_INCLUDE_BASE/QtDeclarative/5.4.0 $$QT_MODULE_INCLUDE_BASE/QtDeclarative/5.4.0/QtDeclarative
+QT.declarative_private.depends = declarative
+QT.declarative_private.module_config = internal_module no_link

@@ -60,6 +60,9 @@ Item {
     property real originX
     property real originY
     property bool active
+    property int horizontalScrollBarPolicy: Qt.ScrollBarAsNeeded
+    property int verticalScrollBarPolicy: Qt.ScrollBarAsNeeded
+
 
     property int leftMargin: outerFrame ? root.__style.padding.left : 0
     property int rightMargin: outerFrame ? root.__style.padding.right : 0
@@ -126,7 +129,7 @@ Item {
         active: !!__panel && (__panel.sunken || __panel.activeControl !== "none")
         enabled: !isTransient || __panel.visible
         orientation: Qt.Horizontal
-        visible: contentWidth > availableWidth
+        visible: horizontalScrollBarPolicy ==  Qt.ScrollBarAsNeeded ? (contentWidth > availableWidth) : horizontalScrollBarPolicy == Qt.ScrollBarAlwaysOn
         height: visible ? implicitHeight : 0
         z: 1
         maximumValue: contentWidth > availableWidth ? originX + contentWidth - availableWidth : 0
@@ -173,7 +176,7 @@ Item {
         active: !!__panel && (__panel.sunken || __panel.activeControl !== "none")
         enabled: !isTransient || __panel.visible
         orientation: Qt.Vertical
-        visible: contentHeight > availableHeight
+        visible: verticalScrollBarPolicy ==  Qt.ScrollBarAsNeeded ? (contentHeight > availableHeight) : verticalScrollBarPolicy == Qt.ScrollBarAlwaysOn
         width: visible ? implicitWidth : 0
         z: 1
         anchors.bottom: cornerFill.top

@@ -43,10 +43,10 @@ import QtQuick.Controls.Private 1.0
 
 ScrollViewStyle {
     property font font: __styleitem.font
-    property color textColor: __syspal.text
-    property color selectionColor: __syspal.highlight
-    property color selectedTextColor: __syspal.highlightedText
-    property color backgroundColor: control.backgroundVisible ? __syspal.base : "transparent"
+    property color textColor: SystemPaletteSingleton.text(control.enabled)
+    property color selectionColor: SystemPaletteSingleton.highlight(control.enabled)
+    property color selectedTextColor: SystemPaletteSingleton.highlightedText(control.enabled)
+    property color backgroundColor: control.backgroundVisible ? SystemPaletteSingleton.base(control.enabled) : "transparent"
 
     property StyleItem __styleitem: StyleItem{
         elementType: "edit"
@@ -55,4 +55,5 @@ ScrollViewStyle {
     }
 
     property int renderType: Text.NativeRendering
+    property real textMargin: 4
 }

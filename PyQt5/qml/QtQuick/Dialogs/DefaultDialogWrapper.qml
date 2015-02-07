@@ -48,6 +48,7 @@ import "qml"
 AbstractDialog {
     id: root
     default property alias data: defaultContentItem.data
+    onVisibilityChanged: if (visible && contentItem) contentItem.forceActiveFocus()
 
     Rectangle {
         id: content
@@ -58,10 +59,9 @@ AbstractDialog {
         property real minimumHeight: implicitHeight
         property real minimumWidth: Screen.pixelDensity * 50
         implicitHeight: defaultContentItem.implicitHeight + spacing + outerSpacing * 2 + buttonsRight.implicitHeight
-        implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.9, Math.max(
+        implicitWidth: Math.min(root.__maximumDimension, Math.max(
             defaultContentItem.implicitWidth, buttonsRowImplicitWidth, Screen.pixelDensity * 50) + outerSpacing * 2);
         color: palette.window
-        focus: root.visible
         Keys.onPressed: {
             event.accepted = true
             switch (event.key) {
@@ -110,7 +110,7 @@ AbstractDialog {
 
             Button {
                 id: moreButton
-                text: "Show Details..."
+                text: qsTr("Show Details...")
                 visible: false
             }
         }

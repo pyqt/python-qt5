@@ -59,7 +59,7 @@ Style {
             hints: control.styleHints
             properties: {"partiallyChecked": (control.checkedState === Qt.PartiallyChecked) }
             contentHeight: textitem.implicitHeight
-            contentWidth: textitem.implicitWidth + indicatorWidth
+            contentWidth: Math.ceil(textitem.implicitWidth) + 4
             property int indicatorWidth: pixelMetric("indicatorwidth") + (macStyle ? 2 : 4)
             property bool macStyle: (style === "mac")
 
@@ -74,7 +74,7 @@ Style {
                 renderType: Text.NativeRendering
                 elide: Text.ElideRight
                 enabled: control.enabled
-                color: __syspal.windowText
+                color: SystemPaletteSingleton.windowText(control.enabled)
                 StyleItem {
                     elementType: "focusrect"
                     anchors.margins: -1

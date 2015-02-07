@@ -51,10 +51,35 @@ import QtQuick.Controls.Private 1.0
 
     \brief Provides a stack-based navigation model.
 
+    \image stackview.png
+
     StackView implements a stack-based navigation model, which can be used
     with a set of interlinked information pages. Items are pushed onto the stack
     as the user navigates deeper into the material, and popped off again when he
     chooses to go back.
+
+    The \l{Qt Quick Controls - Touch Gallery}{touch gallery} example is a good
+    starting point to understand how StackView works. The following snippet
+    from the example shows how it can be used:
+
+    \qml
+    StackView {
+        id: stack
+        initialItem: view
+
+        Component {
+            id: view
+
+            MouseArea {
+                Text {
+                    text: stack.depth
+                    anchors.centerIn: parent
+                }
+                onClicked: stack.push(view)
+            }
+        }
+    }
+    \endqml
 
     \section1 Using StackView in an Application
     Using the StackView in the application is typically a simple matter of adding

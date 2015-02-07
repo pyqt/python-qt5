@@ -178,6 +178,8 @@ Loader {
                 readonly property int index: __menuItemIndex
                 readonly property int type: __menuItem ? __menuItem.type : -1
                 readonly property bool selected: type !== MenuItemType.Separator && __menu.__currentIndex === index
+                readonly property bool pressed: type !== MenuItemType.Separator && __menu.__currentIndex === index
+                                                && content.mousePressed // TODO Add key pressed condition once we get delayed menu closing
                 readonly property string text: type === MenuItemType.Menu ? __menuItem.title :
                                                type !== MenuItemType.Separator ? __menuItem.text : ""
                 readonly property bool underlineMnemonic: __menu.__contentItem.altPressed
@@ -205,7 +207,7 @@ Loader {
                     if (__menu.__currentIndex === __menuItemIndex) {
                         if (__menuItem.__usingDefaultStyle)
                             __menuItem.style = __menu.style
-                        __menuItem.__popup(menuFrameLoader.width - (d.style.submenuOverlap + d.style.padding.right), -d.style.padding.top, -1)
+                        __menuItem.__popup(Qt.rect(menuFrameLoader.width - (d.style.submenuOverlap + d.style.padding.right), -d.style.padding.top, 0, 0), -1)
                     }
                 } else {
                     openMenuTimer.start()

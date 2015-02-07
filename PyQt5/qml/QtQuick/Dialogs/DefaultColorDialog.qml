@@ -38,8 +38,9 @@
 **
 *****************************************************************************/
 
-import QtQuick 2.2
+import QtQuick 2.4
 import QtQuick.Controls 1.2
+import QtQuick.Controls.Private 1.0
 import QtQuick.Dialogs 1.0
 import QtQuick.Window 2.1
 import "qml"
@@ -61,9 +62,8 @@ AbstractColorDialog {
 
     Rectangle {
         id: content
-        property int maxSize: 0.9 * Math.min(Screen.desktopAvailableWidth, Screen.desktopAvailableHeight)
-        implicitHeight: Math.min(maxSize, Screen.pixelDensity * (usePaletteMap ? 100 : 50))
-        implicitWidth: usePaletteMap ? implicitHeight - bottomMinHeight : implicitHeight * 1.5
+        implicitHeight: Math.min(root.__maximumDimension, Screen.pixelDensity * (usePaletteMap ? 120 : 50))
+        implicitWidth: Math.min(root.__maximumDimension, usePaletteMap ? Screen.pixelDensity * (usePaletteMap ? 100 : 50) : implicitHeight * 1.5)
         color: palette.window
         focus: root.visible
         property real bottomMinHeight: sliders.height + buttonRow.height + outerSpacing * 3
@@ -99,9 +99,6 @@ AbstractColorDialog {
             }
         }
 
-        // set the preferred width based on height, to avoid "letterboxing" the paletteMap
-        onHeightChanged: implicitHeight = Math.max((usePaletteMap ? 480 : bottomMinHeight), height)
-
         SystemPalette { id: palette }
 
         Item {
@@ -136,7 +133,54 @@ AbstractColorDialog {
                     anchors.centerIn: parent
                     property real hue: hueSlider.value
 
-                    fragmentShader: "
+                    fragmentShader: content.OpenGLInfo.profile === OpenGLInfo.CoreProfile ? "#version 150
+                    in vec2 qt_TexCoord0;
+                    uniform float qt_Opacity;
+                    uniform float hue;
+                    out vec4 fragColor;
+
+                    float hueToIntensity(float v1, float v2, float h) {
+                        h = fract(h);
+                        if (h < 1.0 / 6.0)
+                            return v1 + (v2 - v1) * 6.0 * h;
+                        else if (h < 1.0 / 2.0)
+                            return v2;
+                        else if (h < 2.0 / 3.0)
+                            return v1 + (v2 - v1) * 6.0 * (2.0 / 3.0 - h);
+
+                        return v1;
+                    }
+
+                    vec3 HSLtoRGB(vec3 color) {
+                        float h = color.x;
+                        float l = color.z;
+                        float s = color.y;
+
+                        if (s < 1.0 / 256.0)
+                            return vec3(l, l, l);
+
+                        float v1;
+                        float v2;
+                        if (l < 0.5)
+                            v2 = l * (1.0 + s);
+                        else
+                            v2 = (l + s) - (s * l);
+
+                        v1 = 2.0 * l - v2;
+
+                        float d = 1.0 / 3.0;
+                        float r = hueToIntensity(v1, v2, h + d);
+                        float g = hueToIntensity(v1, v2, h);
+                        float b = hueToIntensity(v1, v2, h - d);
+                        return vec3(r, g, b);
+                    }
+
+                    void main() {
+                        vec4 c = vec4(1.0);
+                        c.rgb = HSLtoRGB(vec3(hue, 1.0 - qt_TexCoord0.t, qt_TexCoord0.s));
+                        fragColor = c * qt_Opacity;
+                    }
+                    " : "
                     varying mediump vec2 qt_TexCoord0;
                     uniform highp float qt_Opacity;
                     uniform highp float hue;
@@ -229,7 +273,6 @@ AbstractColorDialog {
                 right: parent.right
                 margins: content.outerSpacing
             }
-            spacing: content.spacing
 
             ColorSlider {
                 id: hueSlider
@@ -324,7 +367,8 @@ AbstractColorDialog {
             }
             Row {
                 spacing: content.spacing
-                height: parent.height
+                height: visible ? parent.height : 0
+                visible: !Settings.isMobile
                 TextField {
                     id: colorField
                     text: root.currentColor.toString()
@@ -348,12 +392,12 @@ AbstractColorDialog {
                 anchors.right: parent.right
                 Button {
                     id: cancelButton
-                    text: "Cancel"
+                    text: qsTr("Cancel")
                     onClicked: root.reject()
                 }
                 Button {
                     id: okButton
-                    text: "OK"
+                    text: qsTr("OK")
                     onClicked: root.accept()
                 }
             }

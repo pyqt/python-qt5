@@ -76,14 +76,8 @@ import QtQuick.Controls.Private 1.0
 Style {
     id: buttonstyle
 
-    /*! The \l {QtQuick.Controls::}{Button} attached to this style. */
+    /*! The \l {QtQuick.Controls::}{Button} this style is attached to. */
     readonly property Button control: __control
-
-    /*! \internal */
-    property var __syspal: SystemPalette {
-        colorGroup: control.enabled ?
-                        SystemPalette.Active : SystemPalette.Disabled
-    }
 
     /*! The padding between the background and the label components. */
     padding {
@@ -147,10 +141,10 @@ Style {
             }
             Text {
                 id: text
-                renderType: Text.NativeRendering
+                renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
                 anchors.verticalCenter: parent.verticalCenter
-                text: control.text
-                color: __syspal.buttonText
+                text: StyleHelpers.stylizeMnemonics(control.text)
+                color: SystemPaletteSingleton.buttonText(control.enabled)
             }
         }
     }

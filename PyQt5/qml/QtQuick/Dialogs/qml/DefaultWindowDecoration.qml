@@ -58,8 +58,8 @@ Rectangle {
 
             width: content ? content.width + 15 : 0
             height: content ? content.height + 15 : 0
-            onWidthChanged: content.x = 5
-            onHeightChanged: content.y = 5
+            onWidthChanged: if (content) content.x = 5
+            onHeightChanged: if (content) content.y = 5
             border { left: 10; top: 10; right: 10; bottom: 10 }
             clip: true
             source: "../images/window_border.png"

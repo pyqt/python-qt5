@@ -23,3 +23,4 @@ RecursiveBlur 1.0 RecursiveBlur.qml
 RectangularGlow 1.0 RectangularGlow.qml
 ThresholdMask 1.0 ThresholdMask.qml
 ZoomBlur 1.0 ZoomBlur.qml
+designersupported

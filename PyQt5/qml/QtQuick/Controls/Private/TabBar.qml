@@ -187,6 +187,9 @@ FocusScope {
             property bool nextSelected: tabView.currentIndex === index + 1
             property bool previousSelected: tabView.currentIndex === index - 1
 
+            property bool keyPressed: false
+            property bool effectivePressed: pressed && containsMouse || keyPressed
+
             z: selected ? 1 : -index
             implicitWidth: tabloader.implicitWidth
             implicitHeight: tabloader.implicitHeight
@@ -209,6 +212,16 @@ FocusScope {
                 }
             }
 
+            Keys.onPressed: {
+                if (event.key === Qt.Key_Space && !event.isAutoRepeat && !tabitem.pressed)
+                    tabitem.keyPressed = true
+            }
+            Keys.onReleased: {
+                if (event.key === Qt.Key_Space && !event.isAutoRepeat && tabitem.keyPressed)
+                    tabitem.keyPressed = false
+            }
+            onFocusChanged: if (!focus) tabitem.keyPressed = false
+
             Loader {
                 id: tabloader
 
@@ -221,6 +234,7 @@ FocusScope {
                     readonly property alias title: tabitem.title
                     readonly property alias nextSelected: tabitem.nextSelected
                     readonly property alias previousSelected: tabitem.previousSelected
+                    readonly property alias pressed: tabitem.effectivePressed
                     readonly property alias hovered: tabitem.containsMouse
                     readonly property alias enabled: tabitem.enabled
                     readonly property bool activeFocus: tabitem.activeFocus
