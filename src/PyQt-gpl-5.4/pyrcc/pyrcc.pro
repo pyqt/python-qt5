@@ -1,0 +1,13 @@
+TARGET = pyrcc5
+TEMPLATE = app
+QT -= gui
+QT += xml
+CONFIG += warn_on release
+CONFIG += console
+CONFIG -= android_install
+target.path = C:\Python27
+INSTALLS += target
+INCLUDEPATH += C:\Users\marcus\Downloads\PyQt-gpl-5.4\PyQt-gpl-5.4\pyrcc
+VPATH = C:\Users\marcus\Downloads\PyQt-gpl-5.4\PyQt-gpl-5.4\pyrcc
+HEADERS = rcc.h
+SOURCES = main.cpp rcc.cpp
