@@ -18,9 +18,10 @@
 import os
 import sys
 
-# Setup environment variables
+# Add sip to PYTHONPATH and executables to PATH
 dirname = os.path.dirname(__file__)
 sys.path.insert(0, dirname)
+os.environ["PATH"] += os.pathsep + dirname
 
 # Expose versions
 version_info = (0, 2, 0)  # Version of this release
