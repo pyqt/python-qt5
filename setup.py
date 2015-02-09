@@ -36,6 +36,10 @@ def get_package_data():
     return package_data
 
 
+def get_data_files():
+    return [('', ['qt.conf'])]
+
+
 def get_readme():
     with open('README.txt') as f:
         readme = f.read()
@@ -66,5 +70,6 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     classifiers=classifiers,
-    package_data=get_package_data()
+    package_data=get_package_data(),
+    data_files=get_data_files()
 )
