@@ -3,11 +3,24 @@
 [![Build Status][travis]][travis_repo]
 [![PyPI version][pypi]][pypi_repo]
 
-### Installation
+### Installation - 5.3
 
 ```bash
 $ pip install python-qt5
 ```
+
+You'll also need the Visual C++ Redistributable.
+- http://www.microsoft.com/en-us/download/details.aspx?id=40784
+
+### Installation - 5.4
+
+The 5.4 installation is different due to some trouble getting it up onto PyPI, this is what you can do in the meantime.
+
+```bash
+$ pip install git+https://github.com/pyqt/python-qt5.git
+```
+
+You won't need the Redistributable here; as it is included.
 
 **Testing out the installation**
 
