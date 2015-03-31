@@ -1,5 +1,6 @@
 import os
 import sys
+import util
 
 from setuptools import setup, find_packages
 
@@ -46,27 +47,6 @@ def get_readme():
     return readme
 
 
-def createqtconf():
-    """Create a qt.conf file next to the current executable"""
-
-    template = """[Paths]
-Prefix = {path}
-Binaries = {path}
-"""
-
-    import PyQt5
-
-    exedir = os.path.dirname(sys.executable)
-    qtpath = os.path.join(exedir, "qt.conf")
-    binpath = os.path.dirname(PyQt5.__file__).replace("\\", "/")
-
-    try:
-        with open(qtpath, "w") as f:
-            f.write(template.format(path=binpath))
-    except:
-        pass
-
-
 classifiers = [
     'Development Status :: 4 - Beta',
     'Intended Audience :: Developers',
@@ -94,6 +74,3 @@ setup(
     package_data=get_package_data(),
     data_files=get_data_files()
 )
-
-# Attempt to automatically create a qt.conf
-createqtconf()
