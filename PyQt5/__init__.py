@@ -35,25 +35,3 @@ __pyqt_version__ = pyqt_version
 qt_version_info = (5, 4, 0)
 qt_version = "%s.%s.%s" % qt_version_info
 __qt_version__ = qt_version
-
-
-def __createqtconf():
-    """Create a qt.conf file next to the current executable"""
-
-    template = """[Paths]
-Prefix = {path}
-Binaries = {path}
-"""
-
-    exedir = os.path.dirname(sys.executable)
-    qtpath = os.path.join(exedir, "qt.conf")
-    binpath = os.path.dirname(__file__).replace("\\", "/")
-
-    if not os.path.exists(qtpath):
-        try:
-            with open(qtpath, "w") as f:
-                f.write(template.format(path=binpath))
-        except Exception as e:
-            sys.stderr.write("Could not write qt.conf: %s" % e)
-
-__createqtconf()
