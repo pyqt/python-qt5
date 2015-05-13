@@ -26,6 +26,7 @@ For alternative installation methods, see [the wiki](https://github.com/pyqt/pyt
 >>> button = QtWidgets.QPushButton("Hello")
 >>> button.setFixedSize(400, 400)
 >>> button.show()
+>>> app.exec_()
 ```
 
 - More information in the [Wiki](https://github.com/pyqt/python-qt5/wiki)
