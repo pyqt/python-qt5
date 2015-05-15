@@ -1,5 +1,8 @@
 import os
 import sys
+if os.name!="nt":
+    print r"The binaries distributed with this version are Windows only, if you are on linux, look at github.com/pyqt/python-qt5/wiki/Compiling-PyQt5-on-Ubuntu-12.04. If you are on OS X, look at the OSX specific port: github.com/pyqt/python-qt5-mavericks/"
+    sys.exit()
 import util
 
 from setuptools import setup, find_packages
