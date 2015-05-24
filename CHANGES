@@ -1,6 +1,11 @@
 python-qt5 Changelog
 ====================
 
+Version 1.0.10
+--------------
+
+- Added warning about Windows-only binaries
+
 Version 1.0.9
 -------------
 
