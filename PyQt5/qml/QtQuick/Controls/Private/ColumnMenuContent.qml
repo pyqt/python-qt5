@@ -50,6 +50,7 @@ Item {
     property var itemsModel
     property int minWidth: 100
     property real maxHeight: 800
+    readonly property bool mousePressed: hoverArea.pressed
 
     signal triggered(var item)
 

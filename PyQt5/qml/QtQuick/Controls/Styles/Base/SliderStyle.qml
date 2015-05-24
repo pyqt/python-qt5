@@ -82,12 +82,7 @@ import QtQuick.Controls.Private 1.0
 Style {
     id: styleitem
 
-    /*! \internal */
-    property var __syspal: SystemPalette {
-        colorGroup: control.enabled ?
-                        SystemPalette.Active : SystemPalette.Disabled
-    }
-    /*! The \l Slider attached to this style. */
+    /*! The \l Slider this style is attached to. */
     readonly property Slider control: __control
 
     padding { top: 0 ; left: 0 ; right: 0 ; bottom: 0 }

@@ -50,6 +50,8 @@ import QtQuick.Controls.Styles 1.1
     \ingroup views
     \brief Provides a scrolling view within another Item.
 
+    \image scrollview.png
+
     A ScrollView can be used either to replace a \l Flickable or decorate an
     existing \l Flickable. Depending on the platform, it will add scroll bars and
     a content frame.
@@ -97,6 +99,36 @@ FocusScope {
         The default value is \c false.
     */
     property bool frameVisible: false
+
+    /*! \qmlproperty enumeration ScrollView::horizontalScrollBarPolicy
+        \since QtQuick.Controls 1.3
+
+        This property holds the policy for showing the horizontal scrollbar.
+        It can be any of the following values:
+        \list
+        \li Qt.ScrollBarAsNeeded
+        \li Qt.ScrollBarAlwaysOff
+        \li Qt.ScrollBarAlwaysOn
+        \endlist
+
+        The default policy is \c Qt.ScrollBarAsNeeded.
+     */
+    property alias horizontalScrollBarPolicy: scroller.horizontalScrollBarPolicy
+
+    /*! \qmlproperty enumeration ScrollView::verticalScrollBarPolicy
+        \since QtQuick.Controls 1.3
+
+        This property holds the policy for showing the vertical scrollbar.
+        It can be any of the following values:
+        \list
+        \li Qt.ScrollBarAsNeeded
+        \li Qt.ScrollBarAlwaysOff
+        \li Qt.ScrollBarAlwaysOn
+        \endlist
+
+        The default policy is \c Qt.ScrollBarAsNeeded.
+     */
+    property alias verticalScrollBarPolicy: scroller.verticalScrollBarPolicy
 
     /*!
         This property controls if there should be a highlight

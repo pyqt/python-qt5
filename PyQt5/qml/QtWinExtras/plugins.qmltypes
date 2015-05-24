@@ -91,6 +91,9 @@ Module {
         Property { name: "count"; type: "int"; isReadonly: true }
         Property { name: "data"; type: "QObject"; isList: true; isReadonly: true }
         Property { name: "buttons"; type: "QQuickThumbnailToolButton"; isList: true; isReadonly: true }
+        Property { name: "iconicThumbnailSource"; type: "QUrl" }
+        Property { name: "iconicLivePreviewSource"; type: "QUrl" }
+        Property { name: "iconicNotificationsEnabled"; type: "bool" }
         Method { name: "clear" }
         Method {
             name: "addButton"

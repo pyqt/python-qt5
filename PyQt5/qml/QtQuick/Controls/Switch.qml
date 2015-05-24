@@ -49,7 +49,10 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief A switch.
 
-    A Switch is an option button that can be switched on (checked) or off
+    \image switch.png
+    \caption On and Off states of a Switch.
+
+    A Switch is a toggle button that can be switched on (checked) or off
     (unchecked). Switches are typically used to represent features in an
     application that can be enabled or disabled without affecting others.
 
@@ -77,6 +80,14 @@ Control {
     property bool checked: false
 
     /*!
+        \qmlproperty bool Switch::pressed
+        \since QtQuick.Controls 1.3
+
+        This property is \c true when the control is pressed.
+    */
+    readonly property alias pressed: internal.pressed
+
+    /*!
         This property is \c true if the control takes the focus when it is
         pressed; \l{QQuickItem::forceActiveFocus()}{forceActiveFocus()} will be
         called on the control.
@@ -87,6 +98,13 @@ Control {
         This property stores the ExclusiveGroup that the control belongs to.
     */
     property ExclusiveGroup exclusiveGroup: null
+
+    /*!
+        \since QtQuick.Controls 1.3
+
+        This signal is emitted when the control is clicked.
+    */
+    signal clicked
 
     Keys.onPressed: {
         if (event.key === Qt.Key_Space && !event.isAutoRepeat)
@@ -126,6 +144,8 @@ Control {
                 checked = (handle.x === max) ? false : true
             }
         }
+
+        onClicked: root.clicked()
     }
 
     onCheckedChanged:  {

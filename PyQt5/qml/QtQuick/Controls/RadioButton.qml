@@ -49,25 +49,28 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief A radio button with a text label.
 
+    \image radiobutton.png
+
     A RadioButton is an option button that can be switched on (checked) or off
     (unchecked). Radio buttons typically present the user with a "one of many"
-    choice. In a group of radio buttons, only one radio button at a time can be
-    checked; if the user selects another button, the previously selected button
-    is switched off.
+    choices. In a group of radio buttons, only one radio button can be
+    checked at a time; if the user selects another button, the previously
+    selected button is switched off.
 
     \qml
     GroupBox {
-        title: qsTr("Search")
-        Column {
-            ExclusiveGroup { id: group }
+        title: "Tab Position"
+
+        RowLayout {
+            ExclusiveGroup { id: tabPositionGroup }
             RadioButton {
-                text: qsTr("From top")
-                exclusiveGroup: group
+                text: "Top"
                 checked: true
+                exclusiveGroup: tabPositionGroup
             }
             RadioButton {
-                text: qsTr("From cursor")
-                exclusiveGroup: group
+                text: "Bottom"
+                exclusiveGroup: tabPositionGroup
             }
         }
     }

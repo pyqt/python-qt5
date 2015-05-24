@@ -63,18 +63,40 @@ Style {
         Supported render types are:
         \list
         \li Text.QtRendering
-        \li Text.NativeRendering - the default
+        \li Text.NativeRendering
         \endlist
+
+        The default value is platform dependent.
 
         \sa Text::renderType
     */
-    property int renderType: Text.NativeRendering
-    /*! \internal */
-    property var __syspal: SystemPalette {
-        colorGroup: control.enabled ?
-                        SystemPalette.Active : SystemPalette.Disabled
-    }
-    /*! The \l ComboBox attached to this style. */
+    property int renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
+
+    /*!
+        \since QtQuick.Controls.Styles 1.3
+        The font of the control.
+    */
+    property font font
+
+    /*!
+        \since QtQuick.Controls.Styles 1.3
+        The text color.
+    */
+    property color textColor: SystemPaletteSingleton.text(control.enabled)
+
+    /*!
+        \since QtQuick.Controls.Styles 1.3
+        The text highlight color, used behind selections.
+    */
+    property color selectionColor: SystemPaletteSingleton.highlight(control.enabled)
+
+    /*!
+        \since QtQuick.Controls.Styles 1.3
+        The highlighted text color, used in selections.
+    */
+    property color selectedTextColor: SystemPaletteSingleton.highlightedText(control.enabled)
+
+    /*! The \l ComboBox this style is attached to. */
     readonly property ComboBox control: __control
 
     /*! The padding between the background and the label components. */
@@ -172,7 +194,8 @@ Style {
             anchors.verticalCenter: parent.verticalCenter
             text: control.currentText
             renderType: cbStyle.renderType
-            color: __syspal.text
+            font: cbStyle.font
+            color: cbStyle.textColor
             elide: Text.ElideRight
         }
     }
@@ -180,6 +203,11 @@ Style {
     /*! \internal */
     property Component panel: Item {
         property bool popup: false
+        property font font: cbStyle.font
+        property color textColor: cbStyle.textColor
+        property color selectionColor: cbStyle.selectionColor
+        property color selectedTextColor: cbStyle.selectedTextColor
+        property int dropDownButtonWidth: cbStyle.dropDownButtonWidth
         anchors.centerIn: parent
         anchors.fill: parent
         implicitWidth: backgroundLoader.implicitWidth
@@ -215,6 +243,10 @@ Style {
 
     /*! \internal */
     property Component __dropDownStyle: MenuStyle {
+        font: cbStyle.font
+        __labelColor: cbStyle.textColor
+        __selectedLabelColor: cbStyle.selectedTextColor
+        __selectedBackgroundColor: cbStyle.selectionColor
         __maxPopupHeight: 600
         __menuItemType: "comboboxitem"
         __scrollerStyle: ScrollViewStyle { }
@@ -247,4 +279,50 @@ Style {
 
         property Component __scrollerStyle: null
     }
+
+    /*! \internal
+        The cursor handle.
+        \since QtQuick.Controls.Styles 1.3
+
+        The parent of the handle is positioned to the top left corner of
+        the cursor position. The interactive area is determined by the
+        geometry of the handle delegate.
+
+        The following signals and read-only properties are available within the scope
+        of the handle delegate:
+        \table
+            \row \li \b {styleData.activated()} [signal] \li Emitted when the handle is activated ie. the editor is clicked.
+            \row \li \b {styleData.pressed} : bool \li Whether the handle is pressed.
+            \row \li \b {styleData.position} : int \li The character position of the handle.
+            \row \li \b {styleData.lineHeight} : real \li The height of the line the handle is on.
+            \row \li \b {styleData.hasSelection} : bool \li Whether the editor has selected text.
+        \endtable
+    */
+    property Component __cursorHandle
+
+    /*! \internal
+        The selection handle.
+        \since QtQuick.Controls.Styles 1.3
+
+        The parent of the handle is positioned to the top left corner of
+        the first selected character. The interactive area is determined
+        by the geometry of the handle delegate.
+
+        The following signals and read-only properties are available within the scope
+        of the handle delegate:
+        \table
+            \row \li \b {styleData.activated()} [signal] \li Emitted when the handle is activated ie. the editor is clicked.
+            \row \li \b {styleData.pressed} : bool \li Whether the handle is pressed.
+            \row \li \b {styleData.position} : int \li The character position of the handle.
+            \row \li \b {styleData.lineHeight} : real \li The height of the line the handle is on.
+            \row \li \b {styleData.hasSelection} : bool \li Whether the editor has selected text.
+        \endtable
+    */
+    property Component __selectionHandle
+
+    /*! \internal
+        The cursor delegate.
+        \since QtQuick.Controls.Styles 1.3
+    */
+    property Component __cursorDelegate
 }

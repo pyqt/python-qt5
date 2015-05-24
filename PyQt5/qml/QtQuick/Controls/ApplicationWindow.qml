@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-import QtQuick.Window 2.1
+import QtQuick.Window 2.2
 import QtQuick 2.2
 import QtQuick.Controls 1.2
 import QtQuick.Layouts 1.0
@@ -51,6 +51,8 @@ import QtQuick.Controls.Private 1.0
     \ingroup applicationwindow
     \brief Provides a top-level application window.
 
+    \image applicationwindow.png
+
     ApplicationWindow is a \l Window that adds convenience for positioning items,
     such as \l MenuBar, \l ToolBar, and \l StatusBar in a platform independent
     manner.
@@ -58,6 +60,8 @@ import QtQuick.Controls.Private 1.0
     \code
     ApplicationWindow {
         id: window
+        visible: true
+
         menuBar: MenuBar {
             Menu { MenuItem {...} }
             Menu { MenuItem {...} }
@@ -77,6 +81,11 @@ import QtQuick.Controls.Private 1.0
         }
     }
     \endcode
+
+    \note By default, an ApplicationWindow is not visible.
+
+    The \l{Qt Quick Controls - Gallery} example is a good starting
+    point to explore this type.
 */
 
 Window {
@@ -137,8 +146,19 @@ Window {
     */
     property alias contentItem : contentArea
 
+    /*! The style Component for the window.
+        \sa {Qt Quick Controls Styles QML Types}
+    */
+    property Component style: Qt.createComponent(Settings.style + "/ApplicationWindowStyle.qml", root)
+
     /*! \internal */
-    property real __topBottomMargins: contentArea.y + statusBarArea.height
+    property alias __style: styleLoader.item
+
+    /*! \internal */
+    property alias __panel: panelLoader.item
+
+    /*! \internal */
+    property real __topBottomMargins: __panel.contentArea.y + __panel.statusBarArea.height
     /*! \internal
         There is a similar macro QWINDOWSIZE_MAX in qwindow_p.h that is used to limit the
         range of QWindow::maximum{Width,Height}
@@ -173,16 +193,9 @@ Window {
 
     maximumWidth: Math.min(__qwindowsize_max, contentArea.maximumWidth)
     maximumHeight: Math.min(__qwindowsize_max, contentArea.maximumHeight + __topBottomMargins)
-    onToolBarChanged: { if (toolBar) { toolBar.parent = toolBarArea } }
-
-    onStatusBarChanged: { if (statusBar) { statusBar.parent = statusBarArea } }
-
-    onVisibleChanged: { if (visible && menuBar) { menuBar.__parentWindow = root } }
 
     /*! \internal */
     default property alias data: contentArea.data
-
-    color: syspal.window
 
     flags: Qt.Window | Qt.WindowFullscreenButtonHint |
         Qt.WindowTitleHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint |
@@ -190,62 +203,39 @@ Window {
     // QTBUG-35049: Windows is removing features we didn't ask for, even though Qt::CustomizeWindowHint is not set
     // Otherwise Qt.Window | Qt.WindowFullscreenButtonHint would be enough
 
-    SystemPalette {id: syspal}
-
-    Item {
-        id: backgroundItem
+    Loader {
+        id: panelLoader
         anchors.fill: parent
+        sourceComponent: __style ? __style.panel : null
+        onStatusChanged: if (status === Loader.Error) console.error("Failed to load Style for", root)
+        focus: true
+        Loader {
+            id: styleLoader
+            sourceComponent: style
+            property var __control: root
+            property QtObject styleData: QtObject {
+                readonly property bool hasColor: root.color != "#ffffff"
+            }
+            onStatusChanged: if (status === Loader.Error) console.error("Failed to load Style for", root)
+        }
+
+        Binding { target: toolBar; property: "parent"; value: __panel.toolBarArea }
+        Binding { target: statusBar; property: "parent"; value: __panel.statusBarArea }
+
+        Binding {
+            property: "parent"
+            target: menuBar ? menuBar.__contentItem : null
+            when: menuBar && !menuBar.__isNative
+            value: __panel.menuBarArea
+        }
+        Binding { target: menuBar; property: "__parentWindow"; value: root }
 
         Keys.forwardTo: menuBar ? [menuBar.__contentItem] : []
 
         ContentItem {
             id: contentArea
-            anchors.top: toolBarArea.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.bottom: statusBarArea.top
-        }
-
-        Item {
-            id: toolBarArea
-            anchors.top: parent.top
-            anchors.left: parent.left
-            anchors.right: parent.right
-            implicitHeight: childrenRect.height
-            height: visibleChildren.length > 0 ? implicitHeight: 0
-        }
-
-        Item {
-            id: statusBarArea
-            anchors.bottom: parent.bottom
-            anchors.left: parent.left
-            anchors.right: parent.right
-            implicitHeight: childrenRect.height
-            height: visibleChildren.length > 0 ? implicitHeight: 0
-        }
-
-        onVisibleChanged: if (visible && menuBar) menuBar.__parentWindow = root
-
-        states: State {
-            name: "hasMenuBar"
-            when: menuBar && !menuBar.__isNative
-
-            ParentChange {
-                target: menuBar.__contentItem
-                parent: backgroundItem
-            }
-
-            PropertyChanges {
-                target: menuBar.__contentItem
-                x: 0
-                y: 0
-                width: backgroundItem.width
-            }
-
-            AnchorChanges {
-                target: toolBarArea
-                anchors.top: menuBar.__contentItem.bottom
-            }
+            anchors.fill: parent
+            parent: __panel.contentArea
         }
     }
 }

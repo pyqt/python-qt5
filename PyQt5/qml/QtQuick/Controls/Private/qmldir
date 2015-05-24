@@ -18,10 +18,18 @@ TableViewSelection 1.0 TableViewSelection.qml
 FastGlow 1.0 FastGlow.qml
 SourceProxy 1.0 SourceProxy.qml
 GroupBoxStyle 1.0 ../Styles/Base/GroupBoxStyle.qml
+FocusFrameStyle 1.0 ../Styles/Base/FocusFrameStyle.qml
 ToolButtonStyle 1.0 ../Styles/Base/ToolButtonStyle.qml
 MenuContentItem 1.0 MenuContentItem.qml
 MenuContentScroller 1.0 MenuContentScroller.qml
 ColumnMenuContent 1.0 ColumnMenuContent.qml
 ContentItem 1.0 ContentItem.qml
 HoverButton 1.0 HoverButton.qml
+singleton SystemPaletteSingleton 1.0 SystemPaletteSingleton.qml
 singleton TextSingleton 1.0 TextSingleton.qml
+TextHandle 1.0 TextHandle.qml
+TextInputWithHandles 1.0 TextInputWithHandles.qml
+EditMenu 1.0 EditMenu.qml
+EditMenu_base 1.0 EditMenu_base.qml
+EditMenu_ios 1.0 EditMenu_ios.qml
+ToolMenuButton 1.0 ToolMenuButton.qml

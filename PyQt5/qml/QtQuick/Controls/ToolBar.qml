@@ -49,6 +49,8 @@ import QtQuick.Controls.Private 1.0
     \ingroup applicationwindow
     \brief Contains ToolButton and related controls.
 
+    \image toolbar.png
+
     The common way of using ToolBar is in relation to \l ApplicationWindow. It
     provides styling and is generally designed to work well with ToolButton as
     well as other controls.
@@ -61,15 +63,26 @@ import QtQuick.Controls.Private 1.0
     Otherwise the height is platform dependent.
 
     \code
-    import QtQuick.Controls 1.2
-    import QtQuick.Layouts 1.0
-
     ApplicationWindow {
-        toolBar: ToolBar {
+        ...
+        toolBar:ToolBar {
             RowLayout {
-                ToolButton { ... }
-                ToolButton { ... }
-                ToolButton { ... }
+                anchors.fill: parent
+                ToolButton {
+                    iconSource: "new.png"
+                }
+                ToolButton {
+                    iconSource: "open.png"
+                }
+                ToolButton {
+                    iconSource: "save-as.png"
+                }
+                Item { Layout.fillWidth: true }
+                CheckBox {
+                    text: "Enabled"
+                    checked: true
+                    Layout.alignment: Qt.AlignRight
+                }
             }
         }
     }
@@ -85,8 +98,10 @@ FocusScope {
     LayoutMirroring.childrenInherit: true
 
     width: parent ? parent.width : implicitWidth
-    implicitWidth: container.leftMargin + container.rightMargin + container.calcWidth()
-    implicitHeight: container.topMargin + container.bottomMargin + container.calcHeight()
+    implicitWidth: container.leftMargin + container.rightMargin
+                   + Math.max(container.layoutWidth, __panel ? __panel.implicitWidth : 0)
+    implicitHeight: container.topMargin + container.bottomMargin
+                    + Math.max(container.layoutHeight, __panel ? __panel.implicitHeight : 0)
 
     /*! \internal */
     property Component style: Qt.createComponent(Settings.style + "/ToolBarStyle.qml", toolbar)
@@ -95,7 +110,13 @@ FocusScope {
     property alias __style: styleLoader.item
 
     /*! \internal */
+    property Item __panel: panelLoader.item
+
+    /*! \internal */
     default property alias __content: container.data
+
+    /*! \internal */
+    property var __menu
 
     /*!
         \qmlproperty Item ToolBar::contentItem
@@ -112,7 +133,7 @@ FocusScope {
 
     data: [
         Loader {
-            id: loader
+            id: panelLoader
             anchors.fill: parent
             sourceComponent: styleLoader.item ? styleLoader.item.panel : null
             onLoaded: item.z = -1
@@ -130,7 +151,7 @@ FocusScope {
 
             anchors.topMargin: topMargin
             anchors.leftMargin: leftMargin
-            anchors.rightMargin: rightMargin
+            anchors.rightMargin: rightMargin + (buttonLoader.active ? buttonLoader.width + rightMargin : 0)
             anchors.bottomMargin: bottomMargin
 
             property int topMargin: __style ? __style.padding.top : 0
@@ -139,13 +160,23 @@ FocusScope {
             property int rightMargin: __style ? __style.padding.right : 0
 
             property Item layoutItem: container.children.length === 1 ? container.children[0] : null
-            function calcWidth() { return (layoutItem ? (layoutItem.implicitWidth || layoutItem.width) +
-                                                          (layoutItem.anchors.fill ? layoutItem.anchors.leftMargin +
-                                                                                     layoutItem.anchors.rightMargin : 0) :
-                                                          loader.item ? loader.item.implicitWidth : 0) }
-            function calcHeight () { return (layoutItem ? (layoutItem.implicitHeight || layoutItem.height) +
-                                                          (layoutItem.anchors.fill ? layoutItem.anchors.topMargin +
-                                                                                     layoutItem.anchors.bottomMargin : 0) :
-                                                          loader.item ? loader.item.implicitHeight : 0) }
-        }]
+            property real layoutWidth: layoutItem ? (layoutItem.implicitWidth || layoutItem.width) +
+                                                    (layoutItem.anchors.fill ? layoutItem.anchors.leftMargin +
+                                                                               layoutItem.anchors.rightMargin : 0) : 0
+            property real layoutHeight: layoutItem ? (layoutItem.implicitHeight || layoutItem.height) +
+                                                     (layoutItem.anchors.fill ? layoutItem.anchors.topMargin +
+                                                                                layoutItem.anchors.bottomMargin : 0) : 0
+        },
+        Loader {
+            id: buttonLoader
+            anchors.right: parent.right
+            anchors.rightMargin: container.rightMargin
+            anchors.verticalCenter: parent.verticalCenter
+            sourceComponent: ToolMenuButton {
+                menu: toolbar.__menu
+                panel: toolbar.__style.menuButton || null
+            }
+            active: !!__menu && __menu.items.length > 0 && !!__style.menuButton
+        }
+    ]
 }

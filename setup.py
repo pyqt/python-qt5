@@ -20,7 +20,9 @@ def get_package_data():
     package_data = dict()
 
     package_data['PyQt5'] = list()
-    for subdir in ("plugins/", "qml/", "uic/"):
+    for subdir in ("doc/", "examples/", "include/",
+                   "mkspecs/", "plugins/", "qml/",
+                   "qsci/", "sip/", "translations/", "uic/"):
         abspath = os.path.abspath("PyQt5/" + subdir)
         for root, dirs, files in os.walk(abspath):
             for f in files:
@@ -32,8 +34,14 @@ def get_package_data():
     package_data['PyQt5'].extend(["*.exe",
                                   "*.dll",
                                   "*.pyd",
-                                  "*.conf"])
+                                  "*.conf",
+                                  "*.api",
+                                  "*.qm"])
     return package_data
+
+
+def get_data_files():
+    return [('', ['qt.conf'])]
 
 
 def get_readme():
@@ -66,5 +74,6 @@ setup(
     packages=find_packages(),
     zip_safe=False,
     classifiers=classifiers,
-    package_data=get_package_data()
+    package_data=get_package_data(),
+    data_files=get_data_files()
 )

@@ -51,6 +51,8 @@ import QtQuick.Controls.Private 1.0
     \brief Provides a menu component for use in menu bars, as context menu,
     and other popup menus.
 
+    \image menu.png
+
     \code
     Menu {
         title: "Edit"

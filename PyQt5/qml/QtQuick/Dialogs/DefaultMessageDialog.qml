@@ -40,6 +40,7 @@
 
 import QtQuick 2.2
 import QtQuick.Controls 1.2
+import QtQuick.Controls.Private 1.0
 import QtQuick.Dialogs 1.1
 import QtQuick.Window 2.1
 import "qml"
@@ -54,7 +55,7 @@ AbstractMessageDialog {
         property real buttonsRowImplicitWidth: Screen.pixelDensity * 50
         implicitHeight: contentColumn.implicitHeight + outerSpacing * 2
         onImplicitHeightChanged: root.height = implicitHeight
-        implicitWidth: Math.min(Screen.desktopAvailableWidth * 0.9, Math.max(
+        implicitWidth: Math.min(root.__maximumDimension, Math.max(
             mainText.implicitWidth, buttonsRowImplicitWidth) + outerSpacing * 2);
         onImplicitWidthChanged: root.width = implicitWidth
         color: palette.window
@@ -88,12 +89,9 @@ AbstractMessageDialog {
         Column {
             id: contentColumn
             spacing: content.spacing
-            anchors {
-                top: parent.top
-                left: parent.left
-                right: parent.right
-                margins: content.outerSpacing
-            }
+            x: content.outerSpacing
+            y: content.outerSpacing
+            width: content.width - content.outerSpacing * 2
 
             SystemPalette { id: palette }
 
@@ -115,6 +113,7 @@ AbstractMessageDialog {
                     text: root.text
                     font.weight: Font.Bold
                     wrapMode: Text.WordWrap
+                    renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
                 }
 
                 Text {
@@ -128,6 +127,7 @@ AbstractMessageDialog {
                     }
                     text: root.informativeText
                     wrapMode: Text.WordWrap
+                    renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
                 }
             }
 
@@ -140,115 +140,115 @@ AbstractMessageDialog {
                 x: -content.outerSpacing
                 Button {
                     id: okButton
-                    text: "OK"
+                    text: qsTr("OK")
                     onClicked: root.click(StandardButton.Ok)
                     visible: root.standardButtons & StandardButton.Ok
                 }
                 Button {
                     id: openButton
-                    text: "Open"
+                    text: qsTr("Open")
                     onClicked: root.click(StandardButton.Open)
                     visible: root.standardButtons & StandardButton.Open
                 }
                 Button {
                     id: saveButton
-                    text: "Save"
+                    text: qsTr("Save")
                     onClicked: root.click(StandardButton.Save)
                     visible: root.standardButtons & StandardButton.Save
                 }
                 Button {
                     id: saveAllButton
-                    text: "Save All"
+                    text: qsTr("Save All")
                     onClicked: root.click(StandardButton.SaveAll)
                     visible: root.standardButtons & StandardButton.SaveAll
                 }
                 Button {
                     id: retryButton
-                    text: "Retry"
+                    text: qsTr("Retry")
                     onClicked: root.click(StandardButton.Retry)
                     visible: root.standardButtons & StandardButton.Retry
                 }
                 Button {
                     id: ignoreButton
-                    text: "Ignore"
+                    text: qsTr("Ignore")
                     onClicked: root.click(StandardButton.Ignore)
                     visible: root.standardButtons & StandardButton.Ignore
                 }
                 Button {
                     id: applyButton
-                    text: "Apply"
+                    text: qsTr("Apply")
                     onClicked: root.click(StandardButton.Apply)
                     visible: root.standardButtons & StandardButton.Apply
                 }
                 Button {
                     id: yesButton
-                    text: "Yes"
+                    text: qsTr("Yes")
                     onClicked: root.click(StandardButton.Yes)
                     visible: root.standardButtons & StandardButton.Yes
                 }
                 Button {
                     id: yesAllButton
-                    text: "Yes to All"
+                    text: qsTr("Yes to All")
                     onClicked: root.click(StandardButton.YesToAll)
                     visible: root.standardButtons & StandardButton.YesToAll
                 }
                 Button {
                     id: noButton
-                    text: "No"
+                    text: qsTr("No")
                     onClicked: root.click(StandardButton.No)
                     visible: root.standardButtons & StandardButton.No
                 }
                 Button {
                     id: noAllButton
-                    text: "No to All"
+                    text: qsTr("No to All")
                     onClicked: root.click(StandardButton.NoToAll)
                     visible: root.standardButtons & StandardButton.NoToAll
                 }
                 Button {
                     id: discardButton
-                    text: "Discard"
+                    text: qsTr("Discard")
                     onClicked: root.click(StandardButton.Discard)
                     visible: root.standardButtons & StandardButton.Discard
                 }
                 Button {
                     id: resetButton
-                    text: "Reset"
+                    text: qsTr("Reset")
                     onClicked: root.click(StandardButton.Reset)
                     visible: root.standardButtons & StandardButton.Reset
                 }
                 Button {
                     id: restoreDefaultsButton
-                    text: "Restore Defaults"
+                    text: qsTr("Restore Defaults")
                     onClicked: root.click(StandardButton.RestoreDefaults)
                     visible: root.standardButtons & StandardButton.RestoreDefaults
                 }
                 Button {
                     id: cancelButton
-                    text: "Cancel"
+                    text: qsTr("Cancel")
                     onClicked: root.click(StandardButton.Cancel)
                     visible: root.standardButtons & StandardButton.Cancel
                 }
                 Button {
                     id: abortButton
-                    text: "Abort"
+                    text: qsTr("Abort")
                     onClicked: root.click(StandardButton.Abort)
                     visible: root.standardButtons & StandardButton.Abort
                 }
                 Button {
                     id: closeButton
-                    text: "Close"
+                    text: qsTr("Close")
                     onClicked: root.click(StandardButton.Close)
                     visible: root.standardButtons & StandardButton.Close
                 }
                 Button {
                     id: moreButton
-                    text: "Show Details..."
+                    text: qsTr("Show Details...")
                     onClicked: content.state = (content.state === "" ? "expanded" : "")
                     visible: root.detailedText.length > 0
                 }
                 Button {
                     id: helpButton
-                    text: "Help"
+                    text: qsTr("Help")
                     onClicked: root.click(StandardButton.Help)
                     visible: root.standardButtons & StandardButton.Help
                 }
@@ -285,6 +285,7 @@ AbstractMessageDialog {
                     wrapMode: Text.WordWrap
                     readOnly: true
                     selectByMouse: true
+                    renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
                 }
             }
         }
@@ -303,7 +304,7 @@ AbstractMessageDialog {
                 }
                 PropertyChanges {
                     target: moreButton
-                    text: "Hide Details"
+                    text: qsTr("Hide Details")
                 }
             }
         ]

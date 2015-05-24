@@ -49,10 +49,18 @@ import QtQuick.Controls.Private 1.0
     \ingroup controls
     \brief Displays a single line of editable plain text.
 
+    \image textfield.png
+
     TextField is used to accept a line of text input. Input constraints can be
     placed on a TextField item (for example, through a \l validator or \l
     inputMask). Setting \l echoMode to an appropriate value enables
     TextField to be used for a password input field.
+
+    \qml
+      TextField {
+          placeholderText: qsTr("Enter name")
+      }
+    \endqml
 
     You can create a custom appearance for a TextField by
     assigning a \l {QtQuick.Controls.Styles::TextFieldStyle}{TextFieldStyle}.
@@ -127,6 +135,14 @@ Control {
         This property holds the position of the cursor in the TextField.
     */
     property alias cursorPosition: textInput.cursorPosition
+
+    /*!
+        \qmlproperty rect TextField::cursorRectangle
+        \since QtQuick.Controls 1.3
+
+        The rectangle where the text cursor is rendered within the text field.
+    */
+    readonly property alias cursorRectangle: textInput.cursorRectangle
 
     /*!
        \qmlproperty string TextField::displayText
@@ -228,6 +244,18 @@ Control {
     property alias inputMask: textInput.inputMask
 
     /*!
+        \qmlproperty bool TextField::inputMethodComposing
+        \since QtQuick.Controls 1.3
+
+        This property holds whether the TextField has partial text input from an input method.
+
+        While it is composing an input method may rely on mouse or key events from the TextField
+        to edit or commit the partial text. This property can be used to determine when to disable
+        events handlers that may interfere with the correct operation of an input method.
+    */
+    readonly property bool inputMethodComposing: !!textInput.inputMethodComposing
+
+    /*!
         \qmlproperty enumeration TextField::inputMethodHints
 
         Provides hints to the input method about the expected content of the
@@ -254,6 +282,7 @@ Control {
 
         \li Qt.ImhDate - The text editor functions as a date field.
         \li Qt.ImhTime - The text editor functions as a time field.
+        \li Qt.ImhMultiLine - The text editor doesn't close software input keyboard when Return or Enter key is pressed (since QtQuick.Controls 1.3).
         \endlist
 
         Flags that restrict input (exclusive flags) are:
@@ -321,6 +350,17 @@ Control {
     */
     property alias readOnly: textInput.readOnly
     Accessible.readOnly: readOnly
+
+    /*!
+        \qmlproperty bool TextField::selectByMouse
+        \since QtQuick.Controls 1.3
+
+        This property determines if the user can select the text with the
+        mouse.
+
+        The default value is \c true.
+    */
+    property bool selectByMouse: true
 
     /*!
         \qmlproperty string TextField::selectedText
@@ -393,6 +433,15 @@ Control {
         \sa acceptableInput, inputMask, accepted
     */
     property alias validator: textInput.validator
+
+    /*!
+        \since QtQuick.Controls 1.3
+
+        This property contains the edit \l Menu for working
+        with text selection. Set it to \c null if no menu
+        is wanted.
+    */
+    property Component menu: textInput.editMenu.defaultMenu
 
     /*!
         \qmlsignal TextField::accepted()
@@ -545,7 +594,7 @@ Control {
 
         This property holds whether the control is being hovered.
     */
-    readonly property alias hovered: mouseArea.containsMouse
+    readonly property alias hovered: textInput.containsMouse
 
     /*! \internal */
     property alias __contentHeight: textInput.contentHeight
@@ -564,34 +613,28 @@ Control {
     Accessible.role: Accessible.EditableText
     Accessible.description: placeholderText
 
-    MouseArea {
-        id: mouseArea
-        anchors.fill: parent
-        hoverEnabled: true
-        cursorShape: Qt.IBeamCursor
-        onClicked: textfield.forceActiveFocus()
-    }
-
     Text {
         id: placeholderTextComponent
         anchors.fill: textInput
         font: textInput.font
         horizontalAlignment: textInput.horizontalAlignment
         verticalAlignment: textInput.verticalAlignment
-        opacity: !textInput.text.length && !textInput.inputMethodComposing ? 1 : 0
+        opacity: textInput.displayText.length ? 0.0 : 1.0
         color: __panel ? __panel.placeholderTextColor : "darkgray"
         clip: contentWidth > width;
         elide: Text.ElideRight
         renderType: __style ? __style.renderType : Text.NativeRendering
-        Behavior on opacity { NumberAnimation { duration: 90 } }
     }
 
-    TextInput {
+    TextInputWithHandles {
         id: textInput
         focus: true
-        selectByMouse: Qt.platform.os !== "android" // Workaround for QTBUG-36515
         selectionColor: __panel ? __panel.selectionColor : "darkred"
         selectedTextColor: __panel ? __panel.selectedTextColor : "white"
+
+        control: textfield
+        cursorHandle: __style ? __style.__cursorHandle : undefined
+        selectionHandle: __style ? __style.__selectionHandle : undefined
 
         font: __panel ? __panel.font : TextSingleton.font
         anchors.leftMargin: __panel ? __panel.leftMargin : 0
@@ -609,11 +652,7 @@ Control {
 
         Keys.forwardTo: textfield
 
-        onAccepted: {
-            Qt.inputMethod.commit()
-            Qt.inputMethod.hide()
-            textfield.accepted()
-        }
+        onAccepted: textfield.accepted()
 
         onEditingFinished: textfield.editingFinished()
     }

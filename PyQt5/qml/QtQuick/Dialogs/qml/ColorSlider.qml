@@ -39,6 +39,7 @@
 ****************************************************************************/
 
 import QtQuick 2.2
+import QtQuick.Controls.Private 1.0
 
 Item {
     id: colorSlider
@@ -76,6 +77,7 @@ Item {
             text: colorSlider.text
             anchors.left: parent.left
             color: palette.windowText
+            renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
         }
 
         Item {

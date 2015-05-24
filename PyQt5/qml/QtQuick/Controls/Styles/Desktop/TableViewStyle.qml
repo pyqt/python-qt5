@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Quick Controls module of the Qt Toolkit.
@@ -45,14 +45,10 @@ import "."
 ScrollViewStyle {
     id: root
 
-    property var __syspal: SystemPalette {
-        colorGroup: control.enabled ?
-                        SystemPalette.Active : SystemPalette.Disabled
-    }
     readonly property TableView control: __control
     property bool activateItemOnSingleClick: __styleitem.styleHint("activateItemOnSingleClick")
     property color textColor: __styleitem.textColor
-    property color backgroundColor: __syspal.base
+    property color backgroundColor: SystemPaletteSingleton.base(control.enabled)
     property color highlightedTextColor: __styleitem.highlightedTextColor
 
     property StyleItem __styleitem: StyleItem{
@@ -86,7 +82,7 @@ ScrollViewStyle {
         visible: styleData.selected || styleData.alternate
         source: "image://__tablerow/" + (styleData.alternate ? "alternate_" : "")
                 + (styleData.selected ? "selected_" : "")
-                + (styleData.hasActiveFocus ? "active" : "")
+                + (control.activeFocus ? "active" : "")
         height: Math.max(16, RowItemSingleton.implicitHeight)
         border.left: 4 ; border.right: 4
     }

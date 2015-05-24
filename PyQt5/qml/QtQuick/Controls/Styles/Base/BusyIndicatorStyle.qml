@@ -72,7 +72,7 @@ import QtQuick.Controls.Private 1.0
 Style {
     id: indicatorstyle
 
-    /*! The \l BusyIndicator attached to this style. */
+    /*! The \l BusyIndicator this style is attached to. */
     readonly property BusyIndicator control: __control
 
     /*! This defines the appearance of the busy indicator. */

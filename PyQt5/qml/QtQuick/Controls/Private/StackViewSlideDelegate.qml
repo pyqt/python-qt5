@@ -69,14 +69,16 @@ StackViewDelegate {
                 property: "x"
                 from: target.width
                 to: 0
-                duration: 300
+                duration: 400
+                easing.type: Easing.OutCubic
             }
             PropertyAnimation {
                 target: exitItem
                 property: "x"
                 from: 0
                 to: -target.width
-                duration: 300
+                duration: 400
+                easing.type: Easing.OutCubic
             }
         }
 
@@ -86,14 +88,16 @@ StackViewDelegate {
                 property: "x"
                 from: -target.width
                 to: 0
-                duration: 300
+                duration: 400
+                easing.type: Easing.OutCubic
             }
             PropertyAnimation {
                 target: exitItem
                 property: "x"
                 from: 0
                 to: target.width
-                duration: 300
+                duration: 400
+                easing.type: Easing.OutCubic
             }
         }
         property Component replaceTransition: pushTransition

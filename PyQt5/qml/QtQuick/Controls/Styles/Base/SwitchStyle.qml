@@ -80,8 +80,10 @@ Style {
         implicitWidth: Math.round((parent.parent.width - padding.left - padding.right)/2)
         implicitHeight: control.height - padding.top - padding.bottom
 
-        border.color: control.activeFocus ? Qt.darker(__syspal.highlight, 2) : Qt.darker(__syspal.button, 2)
-        property color bg: control.activeFocus ? Qt.darker(__syspal.highlight, 1.2) : __syspal.button
+        border.color: control.activeFocus ? Qt.darker(highlight, 2) : Qt.darker(button, 2)
+        property color bg: control.activeFocus ? Qt.darker(highlight, 1.2) : button
+        property color highlight: SystemPaletteSingleton.highlight(control.enabled)
+        property color button: SystemPaletteSingleton.button(control.enabled)
         gradient: Gradient {
             GradientStop {color: Qt.lighter(bg, 1.4) ; position: 0}
             GradientStop {color: bg ; position: 1}
@@ -92,8 +94,9 @@ Style {
 
     /*! This property holds the background groove of the switch. */
     property Component groove: Rectangle {
-        property color shadow: control.checked ? Qt.darker(__syspal.highlight, 1.2): "#999"
-        property color bg: control.checked ? __syspal.highlight:"#bbb"
+        property color shadow: control.checked ? Qt.darker(highlight, 1.2): "#999"
+        property color bg: control.checked ? highlight:"#bbb"
+        property color highlight: SystemPaletteSingleton.highlight(control.enabled)
 
         implicitWidth: Math.round(implicitHeight * 3)
         implicitHeight: Math.max(16, Math.round(TextSingleton.implicitHeight))

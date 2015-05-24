@@ -18,32 +18,20 @@
 import os
 import sys
 
-# Setup environment variables
+# Add sip to PYTHONPATH and executables to PATH
 dirname = os.path.dirname(__file__)
 sys.path.insert(0, dirname)
-
-os.environ['PATH'] += os.pathsep + dirname
-
-# Addresses error: "QtQuick" is not installed
-os.environ['QML2_IMPORT_PATH'] = os.path.join(dirname, 'qml')
-
-# Addresses error: Problem creating accessible interface
-os.environ['QT_PLUGIN_PATH'] = os.path.join(dirname, 'plugins')
-
-# Addresses error: ..could not find or load the Qt platform plugin "windows"
-os.environ['QT_QPA_PLATFORM_PLUGIN_PATH'] = os.path.join(dirname,
-                                                         'plugins',
-                                                         'platforms')
+os.environ["PATH"] += os.pathsep + dirname
 
 # Expose versions
-version_info = (0, 1, 9)  # Version of this release
+version_info = (0, 2, 0)  # Version of this release
 version = "%s.%s.%s" % version_info
 __version__ = version
 
-pyqt_version_info = (5, 3, 2)
+pyqt_version_info = (5, 4, 0)
 pyqt_version = "%s.%s.%s" % pyqt_version_info
 __pyqt_version__ = pyqt_version
 
-qt_version_info = (5, 3, 1)
+qt_version_info = (5, 4, 0)
 qt_version = "%s.%s.%s" % qt_version_info
 __qt_version__ = qt_version

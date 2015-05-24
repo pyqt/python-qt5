@@ -56,6 +56,7 @@ import QtQuick.Controls.Private 1.0
         \row \li \b {styleData.index} : int \li The index of the menu item in its menu.
         \row \li \b {styleData.type} : enumeration \li The type of menu item. See below for possible values.
         \row \li \b {styleData.selected} : bool \li \c true if the menu item is selected.
+        \row \li \b {styleData.pressed} : bool \li \c true if the menu item is pressed. Available since 5.4.
         \row \li \b {styleData.text} : string \li The menu item's text, or title if it's a submenu.
         \row \li \b {styleData.underlineMnemonic} : bool \li Whether the style should underline the menu item's label mnemonic.
         \row \li \b {styleData.shortcut} : string \li The text for the menu item's shortcut.
@@ -190,21 +191,35 @@ Style {
         label: Text {
             text: formatMnemonic(styleData.text, styleData.underlineMnemonic)
             color: __currentTextColor
-            font.pixelSize: __labelFontPixelSize
+            font: styleRoot.font
+            renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
         }
 
         submenuIndicator: Text {
             text: __mirrored ? "\u25c2" : "\u25b8" // BLACK LEFT/RIGHT-POINTING SMALL TRIANGLE
-            font.pixelSize: __labelFontPixelSize
+            font: styleRoot.font
             color: __currentTextColor
             style: styleData.selected ? Text.Normal : Text.Raised
             styleColor: Qt.lighter(color, 4)
+            renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
         }
 
         shortcut: Text {
             text: styleData.shortcut
-            font.pixelSize: __labelFontPixelSize * 0.9
+            font {
+                bold: styleRoot.font.bold
+                capitalization: styleRoot.font.capitalization
+                family: styleRoot.font.family
+                italic: styleRoot.font.italic
+                letterSpacing: styleRoot.font.letterSpacing
+                pixelSize: styleRoot.font.pixelSize * 0.9
+                strikeout: styleRoot.font.strikeout
+                underline: styleRoot.font.underline
+                weight: styleRoot.font.weight
+                wordSpacing: styleRoot.font.wordSpacing
+            }
             color: __currentTextColor
+            renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
         }
 
         checkmarkIndicator: Loader {
@@ -269,6 +284,7 @@ Style {
         Will be used when \l {styleData properties} {styleData.type} equals \c MenuItemType.Separator.
     */
     property Component separator: Item {
+        implicitHeight: styleRoot.font.pixelSize / 2
         Rectangle {
             width: parent.width - 2
             height: 1
@@ -290,6 +306,12 @@ Style {
         anchors.centerIn: parent
         source: styleData.scrollerDirection === Qt.UpArrow ? "images/arrow-up.png" : "images/arrow-down.png"
     }
+
+    /*!
+        \since QtQuick.Controls.Styles 1.3
+        The font of the control.
+    */
+    property font font
 
     /*! \internal */
     property string __menuItemType: "menuitem"
@@ -353,9 +375,6 @@ Style {
     /*! \internal */
     readonly property bool __mirrored: Qt.application.layoutDirection === Qt.RightToLeft
 
-    /*! \internal */
-    readonly property real __labelFontPixelSize: TextSingleton.font.pixelSize
-
     /*! \internal
         The margin between the frame and the menu item label's left side.
 
@@ -398,8 +417,8 @@ Style {
         implicitWidth: Math.max((parent ? parent.width : 0),
                                 Math.round(__leftLabelMargin + labelLoader.width + __rightLabelMargin +
                                            (rightIndicatorLoader.active ? __minRightLabelSpacing + rightIndicatorLoader.width : 0)))
-        implicitHeight: Math.round(styleData.isSeparator ? __labelFontPixelSize / 2 :
-                                   !!styleData.scrollerDirection ? __labelFontPixelSize * 0.75 : labelLoader.height + 4)
+        implicitHeight: Math.round(styleData.type === MenuItemType.Separator ? separatorLoader.implicitHeight :
+                                   !!styleData.scrollerDirection ? styleRoot.font.pixelSize * 0.75 : labelLoader.height + 4)
 
         Loader {
             property alias styleData: panel.__styleData
@@ -409,6 +428,7 @@ Style {
         }
 
         Loader {
+            id: separatorLoader
             property alias styleData: panel.__styleData
             property alias __currentTextColor: panel.currentTextColor
             anchors.fill: parent
@@ -420,7 +440,8 @@ Style {
             property alias styleData: panel.__styleData
             property alias __currentTextColor: panel.currentTextColor
             x: __mirrored ? parent.width - width - 4 : 4
-            y: styleData.exclusive ? 5 : 4
+            anchors.verticalCenterOffset: -1
+            anchors.verticalCenter: parent.verticalCenter
             active: __menuItemType === "menuitem" && styleData.checkable
             sourceComponent: itemDelegate.checkmarkIndicator
         }

@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
 ** Contact: http://www.qt-project.org/legal
 **
 ** This file is part of the Qt Quick Controls module of the Qt Toolkit.
@@ -54,14 +54,14 @@ import QtQuick.Controls.Private 1.0
 ScrollViewStyle {
     id: root
 
-    /*! The \l TableView attached to this style. */
+    /*! The \l TableView this style is attached to. */
     readonly property TableView control: __control
 
     /*! The text color. */
-    property color textColor: __syspal.text
+    property color textColor: SystemPaletteSingleton.text(control.enabled)
 
     /*! The background color. */
-    property color backgroundColor: control.backgroundVisible ? __syspal.base : "transparent"
+    property color backgroundColor: control.backgroundVisible ? SystemPaletteSingleton.base(control.enabled) : "transparent"
 
     /*! The alternate background color. */
     property color alternateBackgroundColor: "#f5f5f5"
@@ -92,7 +92,7 @@ ScrollViewStyle {
             text: styleData.value
             elide: Text.ElideRight
             color: textColor
-            renderType: Text.NativeRendering
+            renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
         }
         Rectangle {
             anchors.right: parent.right
@@ -110,7 +110,7 @@ ScrollViewStyle {
     */
     property Component rowDelegate: Rectangle {
         height: Math.round(TextSingleton.implicitHeight * 1.2)
-        property color selectedColor: styleData.hasActiveFocus ? "#07c" : "#999"
+        property color selectedColor: control.activeFocus ? "#07c" : "#999"
         color: styleData.selected ? selectedColor :
                                     !styleData.alternate ? alternateBackgroundColor : backgroundColor
     }
@@ -135,7 +135,7 @@ ScrollViewStyle {
             elide: styleData.elideMode
             text: styleData.value !== undefined ? styleData.value : ""
             color: styleData.textColor
-            renderType: Text.NativeRendering
+            renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
         }
     }
 }

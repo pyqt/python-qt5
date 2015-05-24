@@ -1201,7 +1201,6 @@ Module {
         Property { name: "tooltip"; type: "string" }
         Property { name: "iconSource"; type: "QUrl" }
         Property { name: "iconName"; type: "string" }
-        Property { name: "__textColor"; type: "QColor" }
         Property { name: "__position"; type: "string" }
         Property { name: "__iconOverriden"; type: "bool"; isReadonly: true }
         Property { name: "__action"; type: "QQuickAction"; isPointer: true }
@@ -2182,7 +2181,6 @@ Module {
         Property { name: "tooltip"; type: "string" }
         Property { name: "iconSource"; type: "QUrl" }
         Property { name: "iconName"; type: "string" }
-        Property { name: "__textColor"; type: "QColor" }
         Property { name: "__position"; type: "string" }
         Property { name: "__iconOverriden"; type: "bool"; isReadonly: true }
         Property { name: "__action"; type: "QQuickAction"; isPointer: true }

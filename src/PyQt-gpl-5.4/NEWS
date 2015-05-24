@@ -1,0 +1,88 @@
+v5.4 25th December 2014
+  - Added full support for Qt v5.4.0.
+  - Added the QtWebChannel module.
+  - Added the QtWebEngineWidgets module.
+  - Added the QtXml module.
+
+v5.3.2 11th September 2014
+  - Added the Enginio module.
+  - Added the QJsonDocument and QJsonValue classes.
+  - QJsonObject is implemented as a Python dict.
+  - QJsonArray is implemented as a Python list.
+  - Added setUnifiedTitleAndToolBarOnMac() and unifiedTitleAndToolBarOnMac() to
+    QWidget.
+  - Added windowHandle() to QWidget.
+
+v5.3.1 4th July 2014
+  - Added support for Qt v5.3.1.
+  - Added the -tr-function and -translate-function command line options to
+    pylupdate5.
+
+v5.3 26th May 2014
+  - By default a Python slot is only invoked if the underlying C++ instance
+    still exists.
+  - Added the no_receiver_check argument to connect().
+  - Added support for Qt v5.3.0.
+  - Added the QtQuickWidgets module.
+  - Added the QtWebSockets module.
+  - Added the --target-py-version, --sysroot and --no-tools option to
+    configure.py.
+  - Cross-compilation (specifically to iOS and Android) is now supported.
+
+v5.2.1 14th March 2014
+  - Added full support for Qt v5.2.1.
+  - Properties, signals and slots can now be defined in mixins (i.e.
+    non-QObject classes).
+  - Added support for creating QSGGeometry.AttributeSet instances.
+  - A fundamental value may now be given whenever a QJSValue is expected.
+  - Building PyQt5 as static libraries now works.
+  - Added support for building without OpenGL.
+
+v5.2 8th January 2014
+  - Added full support for Qt v5.2.
+  - Added the QtBluetooth module.
+  - Added the QtPositioning module.
+  - Added the QtMacExtras module.
+  - Added the QtWinExtras module.
+  - Added the QtX11Extras module.
+  - Improved the conversion of Python objects to Qt collection types (e.g.
+    QList, QSet).  Iterators (rather than just sequences) are accepted and
+    failed conversions now raise much more informative exceptions.
+  - QtCore.Q_ENUMS() and QtCore.Q_FLAGS() now populate the meta-object.
+  - The QML debugger is automatically enabled when --debug is passed to
+    configure.py.
+
+v5.1.1 16th October 2013
+  - This is a bug fix release.
+
+v5.1 2nd October 2013
+  - Added full support for Qt v5.1.
+  - Added the QtSensors module.
+  - Added the QtSerialPort module.
+  - A (nearly) complete set of OpenGL v2.0 and OpenGL ES/2 bindings are
+    included.
+  - Cross-compilation is now supported. A configuration file for Python3 on the
+    Raspberry Pi is included.
+
+v5.0.1 21st August 2013
+  - Added the QtQuick module including the ability to create Python Quick items
+    from QML.
+  - Added the QtQml module including the ability to create Python objects from
+    QML.
+  - Added the QtMultimediaWidgets module.
+  - Completed the implementation of the QtMultimedia module including support
+    for cameras and radios.
+  - Added the remaining OpenGL classes to the QtGui module.
+  - Added the 'revision' keyword argument to pyqtProperty().
+  - Added the 'revision' and 'arguments' keyword arguments to pyqtSignal().
+  - Added the 'revision' keyword argument to pyqtSlot().
+  - Added the 'pyqt5qmlplugin' plugin for qmlscene.
+  - The DBus main loop module has been renamed to dbus.mainloop.pyqt5 from
+    dbus.mainloop.qt.
+  - Added the --no-qml-plugin and --qml-plugindir options to configure.py.
+  - Added many QtMultimedia, QML and QtQuick related examples.
+  - Classes now support co-operative multi-inheritance.  (This may introduce
+    incompatibilities with PyQt v5.0.)
+
+v5.0 16th June 2013
+  - The first release of PyQt5.

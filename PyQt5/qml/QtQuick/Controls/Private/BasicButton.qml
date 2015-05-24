@@ -126,8 +126,6 @@ Control {
     property string iconName: action ? action.iconName : ""
 
     /*! \internal */
-    property color __textColor: syspal.text
-    /*! \internal */
     property string __position: "only"
     /*! \internal */
     readonly property bool __iconOverriden: button.action && (button.action.iconSource !== button.iconSource || button.action.iconName !== button.iconName)
@@ -154,6 +152,10 @@ Control {
         id: ownAction
         iconSource: !button.action || __iconOverriden ? button.iconSource : ""
         iconName: !button.action || __iconOverriden ? button.iconName : ""
+
+        // let ownAction handle mnemonic if and only if the button does
+        // not already have an action assigned to avoid ambiguous shortcuts
+        text: button.action ? "" : button.text
     }
 
     Connections {
@@ -217,8 +219,6 @@ Control {
 
     /*! \internal */
     property bool __effectivePressed: behavior.effectivePressed
-
-    SystemPalette { id: syspal }
 
     states: [
         State {

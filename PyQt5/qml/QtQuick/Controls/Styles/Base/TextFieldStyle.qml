@@ -68,12 +68,7 @@ import QtQuick.Controls.Private 1.0
 Style {
     id: style
 
-    /*! \internal */
-    property var __syspal: SystemPalette {
-        colorGroup: control.enabled ?
-                        SystemPalette.Active : SystemPalette.Disabled
-    }
-    /*! The \l TextField attached to this style. */
+    /*! The \l TextField this style is attached to. */
     readonly property TextField control: __control
 
     /*! The content margins of the text field. */
@@ -83,13 +78,13 @@ Style {
     property font font
 
     /*! The text color. */
-    property color textColor: __syspal.text
+    property color textColor: SystemPaletteSingleton.text(control.enabled)
 
     /*! The text highlight color, used behind selections. */
-    property color selectionColor: __syspal.highlight
+    property color selectionColor: SystemPaletteSingleton.highlight(control.enabled)
 
     /*! The highlighted text color, used in selections. */
-    property color selectedTextColor: __syspal.highlightedText
+    property color selectedTextColor: SystemPaletteSingleton.highlightedText(control.enabled)
 
     /*!
         \qmlproperty enumeration renderType
@@ -100,12 +95,14 @@ Style {
         Supported render types are:
         \list
         \li Text.QtRendering
-        \li Text.NativeRendering - the default
+        \li Text.NativeRendering
         \endlist
+
+        The default value is platform dependent.
 
         \sa Text::renderType
     */
-    property int renderType: Text.NativeRendering
+    property int renderType: Settings.isMobile ? Text.QtRendering : Text.NativeRendering
 
     /*! The placeholder text color, used when the text field is empty.
         \since QtQuick.Controls.Styles 1.1
@@ -159,4 +156,50 @@ Style {
             anchors.fill: parent
         }
     }
+
+    /*! \internal
+        The cursor handle.
+        \since QtQuick.Controls.Styles 1.3
+
+        The parent of the handle is positioned to the top left corner of
+        the cursor position. The interactive area is determined by the
+        geometry of the handle delegate.
+
+        The following signals and read-only properties are available within the scope
+        of the handle delegate:
+        \table
+            \row \li \b {styleData.activated()} [signal] \li Emitted when the handle is activated ie. the editor is clicked.
+            \row \li \b {styleData.pressed} : bool \li Whether the handle is pressed.
+            \row \li \b {styleData.position} : int \li The character position of the handle.
+            \row \li \b {styleData.lineHeight} : real \li The height of the line the handle is on.
+            \row \li \b {styleData.hasSelection} : bool \li Whether the editor has selected text.
+        \endtable
+    */
+    property Component __cursorHandle
+
+    /*! \internal
+        The selection handle.
+        \since QtQuick.Controls.Styles 1.3
+
+        The parent of the handle is positioned to the top left corner of
+        the first selected character. The interactive area is determined
+        by the geometry of the handle delegate.
+
+        The following signals and read-only properties are available within the scope
+        of the handle delegate:
+        \table
+            \row \li \b {styleData.activated()} [signal] \li Emitted when the handle is activated ie. the editor is clicked.
+            \row \li \b {styleData.pressed} : bool \li Whether the handle is pressed.
+            \row \li \b {styleData.position} : int \li The character position of the handle.
+            \row \li \b {styleData.lineHeight} : real \li The height of the line the handle is on.
+            \row \li \b {styleData.hasSelection} : bool \li Whether the editor has selected text.
+        \endtable
+    */
+    property Component __selectionHandle
+
+    /*! \internal
+        The cursor delegate.
+        \since QtQuick.Controls.Styles 1.3
+    */
+    property Component __cursorDelegate
 }

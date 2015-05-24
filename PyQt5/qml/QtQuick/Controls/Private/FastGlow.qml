@@ -38,7 +38,7 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.2
+import QtQuick 2.4
 
 Item {
     id: rootItem
@@ -64,7 +64,25 @@ Item {
         hideSource: visible
     }
 
-    property string __internalBlurVertexShader: "
+    property string __internalBlurVertexShader: OpenGLInfo.profile === OpenGLInfo.CoreProfile ? "#version 150
+        in vec4 qt_Vertex;
+        in vec2 qt_MultiTexCoord0;
+        uniform mat4 qt_Matrix;
+        uniform float yStep;
+        uniform float xStep;
+        out vec2 qt_TexCoord0;
+        out vec2 qt_TexCoord1;
+        out vec2 qt_TexCoord2;
+        out vec2 qt_TexCoord3;
+
+        void main() {
+            qt_TexCoord0 = vec2(qt_MultiTexCoord0.x + xStep, qt_MultiTexCoord0.y + yStep * 0.36);
+            qt_TexCoord1 = vec2(qt_MultiTexCoord0.x + xStep * 0.36, qt_MultiTexCoord0.y - yStep);
+            qt_TexCoord2 = vec2(qt_MultiTexCoord0.x - xStep * 0.36, qt_MultiTexCoord0.y + yStep);
+            qt_TexCoord3 = vec2(qt_MultiTexCoord0.x - xStep, qt_MultiTexCoord0.y - yStep * 0.36);
+            gl_Position = qt_Matrix * qt_Vertex;
+        }
+    " : "
         attribute highp vec4 qt_Vertex;
         attribute highp vec2 qt_MultiTexCoord0;
         uniform highp mat4 qt_Matrix;
@@ -83,8 +101,23 @@ Item {
             gl_Position = qt_Matrix * qt_Vertex;
         }
     "
+    property string __internalBlurFragmentShader: OpenGLInfo.profile === OpenGLInfo.CoreProfile ? "#version 150
+        uniform sampler2D source;
+        uniform float qt_Opacity;
+        in vec2 qt_TexCoord0;
+        in vec2 qt_TexCoord1;
+        in vec2 qt_TexCoord2;
+        in vec2 qt_TexCoord3;
+        out vec4 fragColor;
 
-    property string __internalBlurFragmentShader: "
+        void main() {
+            vec4 sourceColor = (texture(source, qt_TexCoord0) +
+                texture(source, qt_TexCoord1) +
+                texture(source, qt_TexCoord2) +
+                texture(source, qt_TexCoord3)) * 0.25;
+            fragColor = sourceColor * qt_Opacity;
+        }
+    " : "
         uniform lowp sampler2D source;
         uniform lowp float qt_Opacity;
         varying highp vec2 qt_TexCoord0;
@@ -99,7 +132,7 @@ Item {
             texture2D(source, qt_TexCoord3)) * 0.25;
             gl_FragColor = sourceColor * qt_Opacity;
         }
-   "
+    "
 
     ShaderEffect {
         id: level0
@@ -359,7 +392,37 @@ Item {
 
         onLodChanged: calculateWeights()
 
-        fragmentShader: "
+        fragmentShader: rootItem.OpenGLInfo.profile === OpenGLInfo.CoreProfile ? "#version 150
+            uniform sampler2D source1;
+            uniform sampler2D source2;
+            uniform sampler2D source3;
+            uniform sampler2D source4;
+            uniform sampler2D source5;
+            uniform float weight1;
+            uniform float weight2;
+            uniform float weight3;
+            uniform float weight4;
+            uniform float weight5;
+            uniform vec4 color;
+            uniform float spread;
+            uniform float qt_Opacity;
+            in vec2 qt_TexCoord0;
+            out vec4 fragColor;
+
+            float linearstep(float e0, float e1, float x) {
+                return clamp((x - e0) / (e1 - e0), 0.0, 1.0);
+            }
+
+            void main() {
+                vec4 sourceColor = texture(source1, qt_TexCoord0) * weight1;
+                sourceColor += texture(source2, qt_TexCoord0) * weight2;
+                sourceColor += texture(source3, qt_TexCoord0) * weight3;
+                sourceColor += texture(source4, qt_TexCoord0) * weight4;
+                sourceColor += texture(source5, qt_TexCoord0) * weight5;
+                sourceColor = mix(vec4(0), color, linearstep(0.0, spread, sourceColor.a));
+                fragColor = sourceColor * qt_Opacity;
+            }
+        " : "
             uniform lowp sampler2D source1;
             uniform lowp sampler2D source2;
             uniform lowp sampler2D source3;
