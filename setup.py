@@ -1,9 +1,29 @@
 import os
 import sys
-import util
+import platform
 
 from setuptools import setup, find_packages
 
+import util
+
+if os.name != "nt":
+    print("""
+\nThe binaries distributed with this version are Windows only,
+- If you are on linux, look at
+github.com/pyqt/python-qt5/wiki/Compiling-PyQt5-on-Ubuntu-12.04.
+- If you are on OS X, look at the OSX specific port:
+github.com/pyqt/python-qt5-mavericks
+""")
+
+    sys.exit()
+
+if "64bit" not in platform.architecture():
+    print("""
+\nThe binaries distributed wtih this version are for the
+64-bit version of Python only.
+""")
+
+    sys.exit()
 
 def get_version():
     repo_dir = os.path.dirname(__file__)
