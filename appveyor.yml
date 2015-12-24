@@ -4,3 +4,6 @@ environment:
 
 install:
   - "%PYTHON%\\python.exe -m pip install git+git://github.com/pyqt/python-qt5.git"
+
+build_script:
+  - echo We needed this to prevend MSBuild from getting run and throwin an error.
