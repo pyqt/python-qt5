@@ -1,4 +1,4 @@
-### PyQt5 for Windows and 64-bit Python
+### PyQt5 for Windows and 64-bit Python 2.7
 
 [![Build status](https://ci.appveyor.com/api/projects/status/wfp7ximk4janf9yj?svg=true)](https://ci.appveyor.com/project/mottosso/python-qt5) [![PyPI version][pypi]][pypi_repo]
 
