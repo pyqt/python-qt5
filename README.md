@@ -1,20 +1,36 @@
 ### PyQt5 - distributed via PyPI
 
-[![Build Status][travis]][travis_repo]
-[![PyPI version][pypi]][pypi_repo]
+[![Build status](https://ci.appveyor.com/api/projects/status/wfp7ximk4janf9yj?svg=true)](https://ci.appveyor.com/project/mottosso/python-qt5) [![PyPI version][pypi]][pypi_repo]
 
-### Installation - 5.3
+<br>
+<br>
+<br>
+
+#### A) Install with pip and git
+
+With this approach, you get version 5.4
+
+```bash
+$ pip install git+git://github.com/pyqt/python-qt5.git
+```
+
+#### B) Or install with just pip
+
+With this approach, you only get 5.3 due to [space restrictions on PyPI](https://github.com/pyqt/python-qt5/issues/7).
 
 ```bash
 $ pip install python-qt5
 ```
 
-You'll also need the Visual C++ Redistributable.
-- http://www.microsoft.com/en-us/download/details.aspx?id=40784
+#### C) Or install with just git
 
-For alternative installation methods, see [the wiki](https://github.com/pyqt/python-qt5/wiki/Installation)
+- [See wiki](https://github.com/pyqt/python-qt5/wiki/Installation).
 
-**Testing out the installation**
+<br>
+<br>
+<br>
+
+### Testing out the installation
 
 1. Launch Python
 2. Type this in
