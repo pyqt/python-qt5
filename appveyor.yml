@@ -1,3 +1,4 @@
+environment:
   matrix:
     - PYTHON: "C:\\Python27.10-x64"
       PYTHON_VERSION: "2.7.10"
