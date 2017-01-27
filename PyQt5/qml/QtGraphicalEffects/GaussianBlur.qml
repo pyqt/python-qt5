@@ -1,7 +1,8 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jolla Ltd, author: <gunnar.sletta@jollamobile.com>
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Graphical Effects module.
 **
@@ -17,8 +18,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -39,11 +40,12 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import "private"
+import QtQuick.Window 2.1
+import QtGraphicalEffects.private 1.0
 
 /*!
     \qmltype GaussianBlur
-    \inqmlmodule QtGraphicalEffects 1.0
+    \inqmlmodule QtGraphicalEffects
     \since QtGraphicalEffects 1.0
     \inherits QtQuick2::Item
     \ingroup qtgraphicaleffects-blur
@@ -51,7 +53,7 @@ import "private"
 
     GaussianBlur effect softens the image by blurring it with an algorithm that
     uses the Gaussian function to calculate the effect. The effect produces
-    higher quality than \l{QtGraphicalEffects1::FastBlur}{FastBlur}, but is
+    higher quality than \l{QtGraphicalEffects::FastBlur}{FastBlur}, but is
     slower to render.
 
     \table
@@ -68,9 +70,13 @@ import "private"
     The following example shows how to apply the effect.
     \snippet GaussianBlur-example.qml example
 
+    Performing blur live is a costly operation. Fullscreen gaussian blur
+    with even a moderate number of samples will only run at 60 fps on highend
+    graphics hardware.
+
 */
 Item {
-    id: rootItem
+    id: root
 
     /*!
         This property defines the source item that is going to be blurred.
@@ -85,12 +91,19 @@ Item {
         affect the blurring of an individual pixel. A larger radius increases
         the blur effect.
 
-        Depending on the radius value, value of the
-        \l{GaussianBlur::samples}{samples} should be set to sufficiently large
-        to ensure the visual quality.
+        The ideal blur is acheived by selecting \c samples and \c radius such
+        that \c {samples = 1 + radius * 2}, such as:
+
+        \table
+        \header \li Radius             \li Samples
+        \row    \li 0 \e{(no blur)}    \li 1
+        \row    \li 1                  \li 3
+        \row    \li 2                  \li 5
+        \row    \li 3                  \li 7
+        \endtable
 
         The value ranges from 0.0 (no blur) to inf. By default, the property is
-        set to \c 0.0 (no blur).
+        set to \c floor(samples / 2.0).
 
         \table
         \header
@@ -116,7 +129,7 @@ Item {
         \endtable
 
     */
-    property real radius: 0.0
+    property real radius: Math.floor(samples / 2);
 
     /*!
         This property defines how many samples are taken per pixel when blur
@@ -124,16 +137,16 @@ Item {
         to render.
 
         Ideally, this value should be twice as large as the highest required
-        radius value, for example, if the radius is animated between 0.0 and
-        4.0, samples should be set to 8.
+        radius value plus 1, for example, if the radius is animated between 0.0
+        and 4.0, samples should be set to 9.
 
-        The value ranges from 0 to 32. By default, the property is set to \c 0.
+        By default, the property is set to \c 9.
 
-        This property is not intended to be animated. Changing this property may
+        \note This property is not intended to be animated. Changing this property may
         cause the underlying OpenGL shaders to be recompiled.
 
     */
-    property int samples: 0
+    property int samples: 9
 
     /*!
         This property is a parameter to the gaussian function that is used when
@@ -219,7 +232,6 @@ Item {
             \li \l deviation: 2.7
             \li \l deviation: 2.7
         \endtable
-
     */
     property bool transparentBorder: false
 
@@ -238,58 +250,122 @@ Item {
     */
     property bool cached: false
 
+
+    // private members...
+    /*! \internal */
+    property int _paddedTexWidth: transparentBorder ? width + 2 * radius: width;
+    /*! \internal */
+    property int _paddedTexHeight: transparentBorder ? height  + 2 * radius: height;
+    /*! \internal */
+    property int _kernelRadius: Math.max(0, samples / 2);
+    /*! \internal */
+    property int _kernelSize: _kernelRadius * 2 + 1;
+    /*! \internal */
+    property int _dpr: Screen.devicePixelRatio;
+    /*! \internal */
+    property bool _alphaOnly: false;
+    /*! \internal */
+    property var _maskSource: undefined
+
+    /*! \internal */
+    property alias _output: sourceProxy.output;
+    /*! \internal */
+    property alias _outputRect: sourceProxy.sourceRect;
+    /*! \internal */
+    property alias _color: verticalBlur.color;
+    /*! \internal */
+    property real _thickness: 0;
+
+    onSamplesChanged: _rebuildShaders();
+    on_KernelSizeChanged: _rebuildShaders();
+    onDeviationChanged: _rebuildShaders();
+    on_DprChanged: _rebuildShaders();
+    on_MaskSourceChanged: _rebuildShaders();
+    Component.onCompleted: _rebuildShaders();
+
+    /*! \internal */
+    function _rebuildShaders() {
+        var params = {
+            radius: _kernelRadius,
+            // Limit deviation to something very small avoid getting NaN in the shader.
+            deviation: Math.max(0.00001, deviation),
+            alphaOnly: root._alphaOnly,
+            masked: _maskSource != undefined,
+            fallback: root.radius != _kernelRadius
+        }
+        var shaders = ShaderBuilder.gaussianBlur(params);
+        horizontalBlur.fragmentShader = shaders.fragmentShader;
+        horizontalBlur.vertexShader = shaders.vertexShader;
+    }
+
     SourceProxy {
         id: sourceProxy
-        input: rootItem.source
-        sourceRect: rootItem.transparentBorder ? Qt.rect(-1, -1, parent.width + 2.0, parent.height + 2.0) : Qt.rect(0, 0, 0, 0)
+        interpolation: SourceProxy.LinearInterpolation
+        input: root.source
+        sourceRect: root.transparentBorder
+                    ? Qt.rect(-root.radius, 0, root._paddedTexWidth, parent.height)
+                    : Qt.rect(0, 0, 0, 0)
+    }
+
+    ShaderEffect {
+        id: horizontalBlur
+        width: root.transparentBorder ? root._paddedTexWidth : root.width
+        height: root.height;
+
+        // Used by all shaders
+        property Item source: sourceProxy.output;
+        property real spread: root.radius / root._kernelRadius;
+        property var dirstep: Qt.vector2d(1 / (root._paddedTexWidth * root._dpr), 0);
+
+        // Used by fallback shader (sampleCount exceeds number of varyings)
+        property real deviation: root.deviation
+
+        // Only in use for DropShadow and Glow
+        property color color: "white"
+        property real thickness: Math.max(0, Math.min(0.98, 1 - root._thickness * 0.98));
+
+        // Only in use for MaskedBlur
+        property var mask: root._maskSource;
+
+        layer.enabled: true
+        layer.smooth: true
+        layer.sourceRect: root.transparentBorder
+                          ? Qt.rect(0, -root.radius, width, root._paddedTexHeight)
+                          : Qt.rect(0, 0, 0, 0)
+        visible: false
+        blending: false
+    }
+
+    ShaderEffect {
+        id: verticalBlur
+        x: transparentBorder ? -root.radius : 0
+        y: x;
+        width: root.transparentBorder ? root._paddedTexWidth: root.width
+        height: root.transparentBorder ? root._paddedTexHeight : root.height;
+        fragmentShader: horizontalBlur.fragmentShader
+        vertexShader: horizontalBlur.vertexShader
+
+        property Item source: horizontalBlur
+        property real spread: horizontalBlur.spread
+        property var dirstep: Qt.vector2d(0, 1 / (root._paddedTexHeight * root._dpr));
+
+        property real deviation: horizontalBlur.deviation
+
+        property color color: "black"
+        property real thickness: horizontalBlur.thickness;
+
+        property var mask: horizontalBlur.mask;
+
+        visible: true
     }
 
     ShaderEffectSource {
         id: cacheItem
         anchors.fill: verticalBlur
-        visible: rootItem.cached
+        visible: root.cached
         smooth: true
         sourceItem: verticalBlur
-        live: true
         hideSource: visible
     }
 
-    GaussianDirectionalBlur {
-        id: verticalBlur
-        x: transparentBorder ? -maximumRadius - 1 : 0
-        y: transparentBorder ? -maximumRadius - 1 : 0
-        width: horizontalBlur.width
-        height: horizontalBlur.height
-
-        horizontalStep: 0.0
-        verticalStep: 1.0 / parent.height
-
-        source: ShaderEffectSource {
-            id: horizontalBlurSource
-            sourceItem: horizontalBlur
-            hideSource: true
-            visible: false
-            smooth: true
-        }
-
-        deviation: rootItem.deviation
-        radius: rootItem.radius
-        maximumRadius: rootItem.samples * 0.5
-        transparentBorder: rootItem.transparentBorder
-    }
-
-    GaussianDirectionalBlur {
-        id: horizontalBlur
-        width: transparentBorder ? parent.width + 2 * maximumRadius + 2 : parent.width
-        height: transparentBorder ? parent.height + 2 * maximumRadius + 2  : parent.height
-
-        horizontalStep: 1.0 / parent.width
-        verticalStep: 0.0
-
-        source: sourceProxy.output
-        deviation: rootItem.deviation
-        radius: rootItem.radius
-        maximumRadius: rootItem.samples / 2.0
-        transparentBorder: rootItem.transparentBorder
-    }
 }

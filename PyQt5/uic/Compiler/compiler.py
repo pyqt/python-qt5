@@ -1,6 +1,6 @@
 #############################################################################
 ##
-## Copyright (C) 2014 Riverbank Computing Limited.
+## Copyright (C) 2016 Riverbank Computing Limited.
 ## Copyright (C) 2006 Thorsten Marek.
 ## All right reserved.
 ##
@@ -45,7 +45,6 @@ from ..uiparser import UIParser
 from . import qtproxies
 from .indenter import createCodeIndenter, getIndenter, write_code
 from .qobjectcreator import CompilerCreatorPolicy
-from .misc import write_import
 
 
 class UICompiler(UIParser):
@@ -101,11 +100,12 @@ class UICompiler(UIParser):
         indenter.dedent()
         indenter.dedent()
 
-        # Make a copy of the resource modules to import because the parser will
-        # reset() before returning.
+        # Keep a reference to the resource modules to import because the parser
+        # will reset() before returning.
         self._resources = self.resources
+        self._resources.sort()
 
-    def compileUi(self, input_stream, output_stream, from_imports, resource_suffix):
+    def compileUi(self, input_stream, output_stream, from_imports, resource_suffix, import_from):
         createCodeIndenter(output_stream)
         w = self.parse(input_stream, resource_suffix)
 
@@ -115,7 +115,10 @@ class UICompiler(UIParser):
         self.factory._cpolicy._writeOutImports()
 
         for res in self._resources:
-            write_import(res, from_imports)
+            if from_imports:
+                write_code("from %s import %s" % (import_from, res))
+            else:
+                write_code("import %s" % res)
 
         return {"widgetname": str(w),
                 "uiclass" : w.uiclass,

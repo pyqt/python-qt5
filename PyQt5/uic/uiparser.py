@@ -1,6 +1,6 @@
 #############################################################################
 ##
-## Copyright (C) 2014 Riverbank Computing Limited.
+## Copyright (C) 2016 Riverbank Computing Limited.
 ## Copyright (C) 2006 Thorsten Marek.
 ## All right reserved.
 ##
@@ -72,7 +72,7 @@ def _parse_alignment(alignment):
 
 
 def _layout_position(elem):
-    """ Return either (), (alignment), (row, column, rowspan, colspan) or
+    """ Return either (), (0, alignment), (row, column, rowspan, colspan) or
     (row, column, rowspan, colspan, alignment) depending on the type of layout
     and its configuration.  The result will be suitable to use as arguments to
     the layout.
@@ -87,7 +87,7 @@ def _layout_position(elem):
         if alignment is None:
             return ()
 
-        return (_parse_alignment(alignment), )
+        return (0, _parse_alignment(alignment))
 
     # It must be a grid or a form layout.
     row = int(row)
@@ -135,6 +135,19 @@ class WidgetStack(list):
 
     def topIsLayout(self):
         return isinstance(self[-1], QtWidgets.QLayout)
+
+    def topIsLayoutWidget(self):
+        # A plain QWidget is a layout widget unless it's parent is a
+        # QMainWindow.  Note that the corresponding uic test is a little more
+        # complicated as it involves features not supported by pyuic.
+
+        if type(self[-1]) is not QtWidgets.QWidget:
+            return False
+
+        if len(self) < 2:
+            return False
+
+        return type(self[-2]) is not QtWidgets.QMainWindow
 
 
 class ButtonGroup(object):
@@ -187,24 +200,28 @@ class UIParser(object):
         self.toplevelWidget = None
         self.stack = WidgetStack()
         self.name_suffixes = {}
-        self.defaults = {"spacing": 6, "margin": 0}
+        self.defaults = {'spacing': -1, 'margin': -1}
         self.actions = []
         self.currentActionGroup = None
         self.resources = []
         self.button_groups = {}
-        self.layout_widget = False
 
-    def setupObject(self, clsname, parent, branch, is_attribute = True):
-        name = self.uniqueName(branch.attrib.get("name") or clsname[1:].lower())
+    def setupObject(self, clsname, parent, branch, is_attribute=True):
+        name = self.uniqueName(branch.attrib.get('name') or clsname[1:].lower())
+
         if parent is None:
             args = ()
         else:
             args = (parent, )
-        obj =  self.factory.createQObject(clsname, name, args, is_attribute)
+
+        obj = self.factory.createQObject(clsname, name, args, is_attribute)
+
         self.wprops.setProperties(obj, branch)
         obj.setObjectName(name)
+
         if is_attribute:
             setattr(self.toplevelWidget, name, obj)
+
         return obj
 
     def getProperty(self, elem, name):
@@ -233,12 +250,6 @@ class UIParser(object):
                                QtWidgets.QWizard)):
             parent = None
 
-        # See if this is a layout widget.
-        if widget_class == 'QWidget':
-            if parent is not None:
-                if not isinstance(parent, QtWidgets.QMainWindow):
-                    self.layout_widget = True
-
         self.stack.push(self.setupObject(widget_class, parent, elem))
 
         if isinstance(self.stack.topwidget, QtWidgets.QTableWidget):
@@ -250,8 +261,6 @@ class UIParser(object):
 
         self.traverseWidgetTree(elem)
         widget = self.stack.popWidget()
-
-        self.layout_widget = False
 
         if isinstance(widget, QtWidgets.QTreeView):
             self.handleHeaderView(elem, "header", widget.header())
@@ -274,7 +283,17 @@ class UIParser(object):
                     # We are loading the .ui file.
                     bg_name = bg_i18n
 
-                bg = self.button_groups[bg_name]
+				# Designer allows the creation of .ui files without explicit
+				# button groups, even though uic then issues warnings.  We
+				# handle it in two stages by first making sure it has a name
+				# and then making sure one exists with that name.
+                if not bg_name:
+                    bg_name = 'buttonGroup'
+
+                try:
+                    bg = self.button_groups[bg_name]
+                except KeyError:
+                    bg = self.button_groups[bg_name] = ButtonGroup()
 
                 if bg.object is None:
                     bg.object = self.factory.createQObject("QButtonGroup",
@@ -419,60 +438,42 @@ class UIParser(object):
                 lay.addItem(spacer, *lp)
 
     def createLayout(self, elem):
-        # Qt v4.3 introduced setContentsMargins() and separate values for each
-        # of the four margins which are specified as separate properties.  This
-        # doesn't really fit the way we parse the tree (why aren't the values
-        # passed as attributes of a single property?) so we create a new
-        # property and inject it.  However, if we find that they have all been
-        # specified and have the same value then we inject a different property
-        # that is compatible with older versions of Qt.
-        left = self.wprops.getProperty(elem, 'leftMargin', -1)
-        top = self.wprops.getProperty(elem, 'topMargin', -1)
-        right = self.wprops.getProperty(elem, 'rightMargin', -1)
-        bottom = self.wprops.getProperty(elem, 'bottomMargin', -1)
+        # We use an internal property to handle margins which will use separate
+        # left, top, right and bottom margins if they are found to be
+        # different.  The following will select, in order of preference,
+        # separate margins, the same margin in all directions, and the default
+        # margin.
+        margin = self.wprops.getProperty(elem, 'margin',
+                self.defaults['margin'])
+        left = self.wprops.getProperty(elem, 'leftMargin', margin)
+        top = self.wprops.getProperty(elem, 'topMargin', margin)
+        right = self.wprops.getProperty(elem, 'rightMargin', margin)
+        bottom = self.wprops.getProperty(elem, 'bottomMargin', margin)
 
-        # Count the number of properties and if they had the same value.
-        def comp_property(m, so_far=-2, nr=0):
-            if m >= 0:
-                nr += 1
+        # A layout widget should, by default, have no margins.
+        if self.stack.topIsLayoutWidget():
+            if left < 0: left = 0
+            if top < 0: top = 0
+            if right < 0: right = 0
+            if bottom < 0: bottom = 0
 
-                if so_far == -2:
-                    so_far = m
-                elif so_far != m:
-                    so_far = -1
+        if left >= 0 or top >= 0 or right >= 0 or bottom >= 0:
+            # We inject the new internal property.
+            cme = SubElement(elem, 'property', name='pyuicMargins')
+            SubElement(cme, 'number').text = str(left)
+            SubElement(cme, 'number').text = str(top)
+            SubElement(cme, 'number').text = str(right)
+            SubElement(cme, 'number').text = str(bottom)
 
-            return so_far, nr
-
-        margin, nr_margins = comp_property(left)
-        margin, nr_margins = comp_property(top, margin, nr_margins)
-        margin, nr_margins = comp_property(right, margin, nr_margins)
-        margin, nr_margins = comp_property(bottom, margin, nr_margins)
-
-        if nr_margins > 0:
-            if nr_margins == 4 and margin >= 0:
-                # We can inject the old margin property.
-                me = SubElement(elem, 'property', name='margin')
-                SubElement(me, 'number').text = str(margin)
-            else:
-                # We have to inject the new internal property.
-                cme = SubElement(elem, 'property', name='pyuicContentsMargins')
-                SubElement(cme, 'number').text = str(left)
-                SubElement(cme, 'number').text = str(top)
-                SubElement(cme, 'number').text = str(right)
-                SubElement(cme, 'number').text = str(bottom)
-        elif self.layout_widget:
-            margin = self.wprops.getProperty(elem, 'margin', -1)
-            if margin < 0:
-                # The layout's of layout widgets have no margin.
-                me = SubElement(elem, 'property', name='margin')
-                SubElement(me, 'number').text = '0'
-
-            # In case there are any nested layouts.
-            self.layout_widget = False
-
-        # We do the same for setHorizontalSpacing() and setVerticalSpacing().
-        horiz = self.wprops.getProperty(elem, 'horizontalSpacing', -1)
-        vert = self.wprops.getProperty(elem, 'verticalSpacing', -1)
+        # We use an internal property to handle spacing which will use separate
+        # horizontal and vertical spacing if they are found to be different.
+        # The following will select, in order of preference, separate
+        # horizontal and vertical spacing, the same spacing in both directions,
+        # and the default spacing.
+        spacing = self.wprops.getProperty(elem, 'spacing',
+                self.defaults['spacing'])
+        horiz = self.wprops.getProperty(elem, 'horizontalSpacing', spacing)
+        vert = self.wprops.getProperty(elem, 'verticalSpacing', spacing)
 
         if horiz >= 0 or vert >= 0:
             # We inject the new internal property.
@@ -748,6 +749,19 @@ class UIParser(object):
                     w.setVerticalHeaderItem(self.row_counter, item)
                     self.row_counter += 1
 
+    def setZOrder(self, elem):
+        # Designer can generate empty zorder elements.
+        if elem.text is None:
+            return
+
+        # Designer allows the z-order of spacer items to be specified even
+        # though they can't be raised, so ignore any missing raise_() method.
+        try:
+            getattr(self.toplevelWidget, elem.text).raise_()
+        except AttributeError:
+            # Note that uic issues a warning message.
+            pass
+
     def createAction(self, elem):
         self.setupObject("QAction", self.currentActionGroup or self.toplevelWidget,
                          elem)
@@ -768,6 +782,7 @@ class UIParser(object):
         "actiongroup": createActionGroup,
         "column"    : addHeader,
         "row"       : addHeader,
+        "zorder"    : setZOrder,
         }
 
     def traverseWidgetTree(self, elem):
@@ -853,8 +868,8 @@ class UIParser(object):
         pass
 
     def readDefaults(self, elem):
-        self.defaults["margin"] = int(elem.attrib["margin"])
-        self.defaults["spacing"] = int(elem.attrib["spacing"])
+        self.defaults['margin'] = int(elem.attrib['margin'])
+        self.defaults['spacing'] = int(elem.attrib['spacing'])
 
     def setTaborder(self, elem):
         lastwidget = None
@@ -871,7 +886,12 @@ class UIParser(object):
         Read a "resources" tag and add the module to import to the parser's
         list of them.
         """
-        for include in elem.getiterator("include"):
+        try:
+            iterator = getattr(elem, 'iter')
+        except AttributeError:
+            iterator = getattr(elem, 'getiterator')
+
+        for include in iterator("include"):
             loc = include.attrib.get("location")
 
             # Apply the convention for naming the Python files generated by

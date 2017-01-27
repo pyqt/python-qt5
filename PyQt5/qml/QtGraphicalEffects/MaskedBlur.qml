@@ -1,7 +1,8 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jolla Ltd, author: <gunnar.sletta@jollamobile.com>
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Graphical Effects module.
 **
@@ -17,8 +18,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -39,11 +40,11 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import "private"
+import QtGraphicalEffects.private 1.0
 
 /*!
     \qmltype MaskedBlur
-    \inqmlmodule QtGraphicalEffects 1.0
+    \inqmlmodule QtGraphicalEffects
     \since QtGraphicalEffects 1.0
     \inherits QtQuick2::Item
     \ingroup qtgraphicaleffects-blur
@@ -51,12 +52,11 @@ import "private"
 
     MaskedBlur effect softens the image by blurring it. The intensity of the
     blur can be controlled for each pixel using maskSource so that some parts of
-    the source are blurred more than others. By default the effect produces a
-    high quality result, thus the rendering speed may not be the highest
-    possible. The rendering speed is reduced especially if the
-    \l{MaskedBlur::samples}{samples} is large. For use cases that require faster
-    rendering speed and the highest possible visual quality is not necessary,
-    property \l{MaskedBlur::fast}{fast} can be set to true.
+    the source are blurred more than others.
+
+    Performing blur live is a costly operation. Fullscreen gaussian blur
+    with even a moderate number of samples will only run at 60 fps on highend
+    graphics hardware.
 
     \table
     \header
@@ -76,7 +76,7 @@ import "private"
 
 */
 Item {
-    id: rootItem
+    id: root
 
     /*!
         This property defines the source item that is going to be blurred.
@@ -84,7 +84,7 @@ Item {
         \note It is not supported to let the effect include itself, for
         instance by setting source to the effect's parent.
     */
-    property variant source
+    property alias source: blur.source
 
     /*!
         This property defines the item that is controlling the final intensity
@@ -97,7 +97,7 @@ Item {
         blur completely. Semitransparent maskSource pixels produce blur with a
         radius that is interpolated according to the pixel transparency level.
     */
-    property variant maskSource
+    property alias maskSource: maskProxy.input
 
     /*!
         This property defines the distance of the neighboring pixels which
@@ -125,21 +125,13 @@ Item {
             \li \b { radius: 8 }
             \li \b { radius: 16 }
         \row
-            \li \l samples: 24
-            \li \l samples: 24
-            \li \l samples: 24
-        \row
-            \li \l transparentBorder: false
-            \li \l transparentBorder: false
-            \li \l transparentBorder: false
-        \row
-            \li \l fast: false
-            \li \l fast: false
-            \li \l fast: false
+            \li \l samples: 25
+            \li \l samples: 25
+            \li \l samples: 25
         \endtable
 
     */
-    property real radius: 0.0
+    property alias radius: blur.radius
 
     /*!
         This property defines how many samples are taken per pixel when blur
@@ -147,18 +139,15 @@ Item {
         to render.
 
         Ideally, this value should be twice as large as the highest required
-        radius value, for example, if the radius is animated between 0.0 and
-        4.0, samples should be set to 8.
+        radius value plus 1, for example, if the radius is animated between 0.0
+        and 4.0, samples should be set to 9.
 
-        The value ranges from 0 to 32. By default, the property is set to \c 0.
+        By default, the property is set to \c 9.
 
         This property is not intended to be animated. Changing this property may
         cause the underlying OpenGL shaders to be recompiled.
-
-        When \l{MaskedBlur::fast}{fast} property is set to true, this property
-        has no effect.
     */
-    property int samples: 0
+    property alias samples: blur.samples
 
     /*!
         This property allows the effect output pixels to be cached in order to
@@ -173,110 +162,56 @@ Item {
         By default, the property is set to \c false.
 
     */
-    property bool cached: false
+    property alias cached: cacheItem.visible
 
     /*!
-        This property selects the blurring algorithm that is used to produce the
-        blur. Setting this to true enables fast algorithm, setting value to
-        false produces higher quality result.
+        \internal
 
-        By default, the property is set to \c false.
-
-        \table
-        \header
-        \li Output examples with different fast values
-        \li
-        \li
-        \row
-            \li \image MaskedBlur_fast1.png
-            \li \image MaskedBlur_fast2.png
-        \row
-            \li \b { fast: false }
-            \li \b { fast: true }
-        \row
-            \li \l radius: 16
-            \li \l radius: 16
-        \row
-            \li \l samples: 24
-            \li \l samples: 24
-        \row
-            \li \l transparentBorder: false
-            \li \l transparentBorder: false
-        \endtable
-
+        Kept for source compatibility only. Removed in Qt 5.6
+        ### Qt6: remove
     */
     property bool fast: false
 
     /*!
-        This property defines the blur behavior near the edges of the item,
-        where the pixel blurring is affected by the pixels outside the source
-        edges.
+        \internal
 
-        If the property is set to \c true, the pixels outside the source are
-        interpreted to be transparent, which is similar to OpenGL
-        clamp-to-border extension. The blur is expanded slightly outside the
-        effect item area.
+        Kept for source compatibility only. Removed in Qt 5.6
 
-        If the property is set to \c false, the pixels outside the source are
-        interpreted to contain the same color as the pixels at the edge of the
-        item, which is similar to OpenGL clamp-to-edge behavior. The blur does
-        not expand outside the effect item area.
+        Doing transparent border on a masked source doesn't make any sense
+        as the padded exterior will have a mask alpha value of 0 which means
+        no blurring and as the padded exterior of the source is a transparent
+        pixel, the result is no pixels at all.
 
-        By default, the property is set to \c false.
+        In Qt 5.6 and before, this worked based on that the mask source
+        was scaled up to fit the padded blur target rect, which would lead
+        to inconsistent and buggy results.
 
-        \table
-        \header
-        \li Output examples with different transparentBorder values
-        \li
-        \li
-        \row
-            \li \image MaskedBlur_transparentBorder1.png
-            \li \image MaskedBlur_transparentBorder2.png
-        \row
-            \li \b { transparentBorder: false }
-            \li \b { transparentBorder: true }
-        \row
-            \li \l radius: 64
-            \li \l radius: 64
-        \row
-            \li \l samples: 24
-            \li \l samples: 24
-        \row
-            \li \l fast: true
-            \li \l fast: true
-        \endtable
-
+        ### Qt6: remove
     */
-    property bool transparentBorder: false
+    property bool transparentBorder;
 
-    Loader {
-        id: loaderItem
+    GaussianBlur {
+        id: blur
+
+        source: root.source;
         anchors.fill: parent
-        sourceComponent: rootItem.fast ? fastBlur : gaussianBlur
-    }
+        _maskSource: maskProxy.output;
 
-    Component {
-        id: gaussianBlur
-        GaussianMaskedBlur {
-            anchors.fill: parent
-            source: rootItem.source
-            maskSource: rootItem.maskSource
-            radius: rootItem.radius
-            maximumRadius: rootItem.samples * 0.5
-            transparentBorder: rootItem.transparentBorder
-            cached: rootItem.cached
+        SourceProxy {
+            id: maskProxy
         }
     }
 
-    Component {
-        id: fastBlur
-        FastMaskedBlur {
-            anchors.fill: parent
-            source:rootItem. source
-            maskSource: rootItem.maskSource
-            blur: Math.pow(rootItem.radius / 64.0, 0.4)
-            transparentBorder: rootItem.transparentBorder
-            cached: rootItem.cached
-        }
+    ShaderEffectSource {
+        id: cacheItem
+        x: -blur._kernelRadius
+        y: -blur._kernelRadius
+        width: blur.width + 2 * blur._kernelRadius
+        height: blur.height + 2 * blur._kernelRadius
+        visible: false
+        smooth: true
+        sourceRect: Qt.rect(-blur._kernelRadius, -blur._kernelRadius, width, height);
+        sourceItem: blur
+        hideSource: visible
     }
 }

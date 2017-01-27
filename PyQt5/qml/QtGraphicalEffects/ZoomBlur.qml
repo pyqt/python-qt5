@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Graphical Effects module.
 **
@@ -17,8 +17,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -39,11 +39,11 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import "private"
+import QtGraphicalEffects.private 1.0
 
 /*!
     \qmltype ZoomBlur
-    \inqmlmodule QtGraphicalEffects 1.0
+    \inqmlmodule QtGraphicalEffects
     \since QtGraphicalEffects 1.0
     \inherits QtQuick2::Item
     \ingroup qtgraphicaleffects-motion-blur
@@ -52,8 +52,8 @@ import "private"
     Effect creates perceived impression that the source item appears to be
     moving towards the center point in Z-direction or that the camera appears
     to be zooming rapidly. Other available motion blur effects are
-    \l{QtGraphicalEffects1::DirectionalBlur}{DirectionalBlur}
-    and \l{QtGraphicalEffects1::RadialBlur}{RadialBlur}.
+    \l{QtGraphicalEffects::DirectionalBlur}{DirectionalBlur}
+    and \l{QtGraphicalEffects::RadialBlur}{RadialBlur}.
 
     \table
     \header
@@ -138,8 +138,8 @@ Item {
     property int samples: 0
 
     /*!
-        \qmlproperty real QtGraphicalEffects1::ZoomBlur::horizontalOffset
-        \qmlproperty real QtGraphicalEffects1::ZoomBlur::verticalOffset
+        \qmlproperty real QtGraphicalEffects::ZoomBlur::horizontalOffset
+        \qmlproperty real QtGraphicalEffects::ZoomBlur::verticalOffset
 
         These properties define an offset in pixels for the blur direction
         center point.

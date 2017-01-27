@@ -15,8 +15,24 @@ SpinBoxStyle 1.1 Base/SpinBoxStyle.qml
 SwitchStyle 1.1 Base/SwitchStyle.qml
 TabViewStyle 1.0 Base/TabViewStyle.qml
 TableViewStyle 1.0 Base/TableViewStyle.qml
+TreeViewStyle 1.4 Base/TreeViewStyle.qml
 TextAreaStyle 1.1 Base/TextAreaStyle.qml
 TextFieldStyle 1.0 Base/TextFieldStyle.qml
 ToolBarStyle 1.0 Base/ToolBarStyle.qml
 StatusBarStyle 1.0 Base/StatusBarStyle.qml
+
+CircularGaugeStyle 1.0 Base/CircularGaugeStyle.qml
+CircularButtonStyle 1.0 Base/CircularButtonStyle.qml
+CircularTickmarkLabelStyle 1.0 Base/CircularTickmarkLabelStyle.qml
+CommonStyleHelper 1.0 Base/CommonStyleHelper.qml
+DelayButtonStyle 1.0 Base/DelayButtonStyle.qml
+DialStyle 1.1 Base/DialStyle.qml
+GaugeStyle 1.0 Base/GaugeStyle.qml
+HandleStyle 1.0 Base/HandleStyle.qml
+HandleStyleHelper 1.0 Base/HandleStyleHelper.qml
+PieMenuStyle 1.3 Base/PieMenuStyle.qml
+StatusIndicatorStyle 1.1 Base/StatusIndicatorStyle.qml
+ToggleButtonStyle 1.0 Base/ToggleButtonStyle.qml
+TumblerStyle 1.2 Base/TumblerStyle.qml
+
 designersupported

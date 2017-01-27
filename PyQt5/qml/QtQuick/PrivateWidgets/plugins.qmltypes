@@ -1,4 +1,4 @@
-import QtQuick.tooling 1.1
+import QtQuick.tooling 1.2
 
 // This file describes the plugin-supplied types contained in the library.
 // It is used for QML tooling purposes only.
@@ -7,6 +7,7 @@ import QtQuick.tooling 1.1
 // 'qmlplugindump -nonrelocatable QtQuick.PrivateWidgets 1.1'
 
 Module {
+    dependencies: []
     Component {
         name: "QQuickAbstractColorDialog"
         prototype: "QQuickAbstractDialog"
@@ -104,6 +105,7 @@ Module {
         Property { name: "y"; type: "int" }
         Property { name: "width"; type: "int" }
         Property { name: "height"; type: "int" }
+        Property { name: "__maximumDimension"; type: "int"; isReadonly: true }
         Signal { name: "visibilityChanged" }
         Signal { name: "geometryChanged" }
         Signal { name: "accepted" }
@@ -140,6 +142,7 @@ Module {
         Property { name: "selectedNameFilterIndex"; type: "int" }
         Property { name: "fileUrl"; type: "QUrl"; isReadonly: true }
         Property { name: "fileUrls"; type: "QList<QUrl>"; isReadonly: true }
+        Property { name: "sidebarVisible"; type: "bool" }
         Signal { name: "filterSelected" }
         Signal { name: "fileModeChanged" }
         Signal { name: "selectionAccepted" }
@@ -178,6 +181,10 @@ Module {
         Method {
             name: "setSelectedNameFilterIndex"
             Parameter { name: "idx"; type: "int" }
+        }
+        Method {
+            name: "setSidebarVisible"
+            Parameter { name: "s"; type: "bool" }
         }
     }
     Component {

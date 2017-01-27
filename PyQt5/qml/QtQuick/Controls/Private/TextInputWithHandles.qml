@@ -1,43 +1,44 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Quick Controls module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:BSD$
-** You may use this file under the terms of the BSD license as follows:
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
 **
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 **
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
+
 import QtQuick 2.2
+import QtQuick.Window 2.2
 import QtQuick.Controls.Private 1.0
 
 TextInput {
@@ -74,7 +75,6 @@ TextInput {
             selectionHandle.position = (selectionStart !== cursorPosition) ? selectionStart : selectionEnd
             blockRecursion = false
         }
-        TextSingleton.updateSelectionItem(input)
     }
 
     function activate() {
@@ -102,7 +102,7 @@ TextInput {
     MouseArea {
         id: mouseArea
         anchors.fill: parent
-        hoverEnabled: true
+        hoverEnabled: Settings.hoverEnabled
         cursorShape: Qt.IBeamCursor
         acceptedButtons: (input.selectByMouse ? Qt.NoButton : Qt.LeftButton) | (control.menu ? Qt.RightButton : Qt.NoButton)
         onClicked: {
@@ -131,20 +131,31 @@ TextInput {
         anchors.fill: parent
     }
 
+    ScenePosListener {
+        id: listener
+        item: input
+        enabled: input.activeFocus && Qt.platform.os !== "ios" && Settings.isMobile
+    }
+
     TextHandle {
         id: selectionHandle
 
         editor: input
-        parent: control
+        z: 1000001 // DefaultWindowDecoration+1
+        parent: !input.activeFocus || Qt.platform.os === "ios" ? control : Window.contentItem // float (QTBUG-42538)
         control: input.control
         active: control.selectByMouse && Settings.isMobile
         maximum: cursorHandle.position - 1
 
-        property var mappedPos: parent.mapFromItem(editor, editor.selectionRectangle.x, editor.selectionRectangle.y)
+        readonly property var mappedOrigin: editor.mapToItem(parent, 0,0)
+
+        // Mention scenePos in the mappedPos binding to force re-evaluation if it changes
+        readonly property var mappedPos: listener.scenePos.x !== listener.scenePos.y !== Number.MAX_VALUE ?
+                                    editor.mapToItem(parent, editor.selectionRectangle.x, editor.selectionRectangle.y) : -1
         x: mappedPos.x
         y: mappedPos.y
 
-        visible: pressed || (input.hasSelection && handleX + handleWidth >= -1 && handleX <= control.width + 1)
+        visible: pressed || (input.hasSelection && handleX + handleWidth >= -1 && handleX - mappedOrigin.x <= control.width + 1)
 
         onPositionChanged: {
             if (!input.blockRecursion) {
@@ -161,16 +172,21 @@ TextInput {
         id: cursorHandle
 
         editor: input
-        parent: control
+        z: 1000001 // DefaultWindowDecoration+1
+        parent: !input.activeFocus || Qt.platform.os === "ios" ? control : Window.contentItem // float (QTBUG-42538)
         control: input.control
         active: control.selectByMouse && Settings.isMobile
         minimum: input.hasSelection ? selectionHandle.position + 1 : -1
 
-        property var mappedPos: parent.mapFromItem(editor, editor.cursorRectangle.x, editor.cursorRectangle.y)
+        readonly property var mappedOrigin: editor.mapToItem(parent, 0,0)
+
+        // Mention scenePos in the mappedPos binding to force re-evaluation if it changes
+        readonly property var mappedPos: listener.scenePos.x !== listener.scenePos.y !== Number.MAX_VALUE ?
+                                    editor.mapToItem(parent, editor.cursorRectangle.x, editor.cursorRectangle.y) : -1
         x: mappedPos.x
         y: mappedPos.y
 
-        visible: pressed || ((input.cursorVisible || input.hasSelection) && handleX + handleWidth >= -1 && handleX <= control.width + 1)
+        visible: pressed || ((input.cursorVisible || input.hasSelection) && handleX + handleWidth >= -1 && handleX - mappedOrigin.x <= control.width + 1)
 
         onPositionChanged: {
             if (!input.blockRecursion) {

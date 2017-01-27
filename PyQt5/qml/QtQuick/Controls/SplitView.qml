@@ -1,38 +1,37 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Quick Controls module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:BSD$
-** You may use this file under the terms of the BSD license as follows:
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
 **
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 **
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -49,6 +48,7 @@ import QtQuick.Window 2.1
     \inqmlmodule QtQuick.Controls
     \since 5.1
     \ingroup views
+    \ingroup controls
     \brief Lays out items with a draggable splitter between each item.
 
     \image splitview.png
@@ -61,9 +61,13 @@ import QtQuick.Window 2.1
     item will get all leftover space when other items have been laid out.
     By default, the last visible child of the SplitView will have this set, but
     it can be changed by explicitly setting fillWidth to \c true on another item.
+
     As the fillWidth item will automatically be resized to fit the extra space, explicit assignments
-    to width and height will be ignored (but \l{Layout::minimumWidth}{Layout.minimumWidth} and
+    to its width and height properties will be ignored (but \l{Layout::minimumWidth}{Layout.minimumWidth} and
     \l{Layout::maximumWidth}{Layout.maximumWidth} will still be respected).
+    The initial sizes of other items should be set via their width and height properties.
+    Any binding assignment to an item's width or height will be broken as soon as the user
+    drags that item's splitter handle.
 
     A handle can belong to the item either on the left or top side, or on the right or bottom side:
     \list
@@ -85,7 +89,7 @@ import QtQuick.Window 2.1
         \li \l{Layout::fillHeight}{Layout.fillHeight} (\c true for only one child)
     \endlist
 
-    \note Please import QtQuick.Layout 1.0 in your QML file in order to use the Layout
+    \note import QtQuick.Layouts 1.0 in your QML file in order to use the Layout
     attached properties inside SplitView.
 
     Example:
@@ -181,22 +185,42 @@ Item {
     onHeightChanged: d.updateLayout()
     onOrientationChanged: d.changeOrientation()
 
-    /*! Add an item to the end of the view.
+    /*! \qmlmethod void SplitView::addItem(Item item)
+        Add an item to the end of the view.
         \since QtQuick.Controls 1.3 */
     function addItem(item) {
         d.updateLayoutGuard = true
-
         d.addItem_impl(item)
-
         d.calculateImplicitSize()
         d.updateLayoutGuard = false
         d.updateFillIndex()
+    }
+
+    /*! \qmlmethod void SplitView::removeItem(Item item)
+        Remove \a item from the view.
+        \since QtQuick.Controls 1.4 */
+    function removeItem(item) {
+        d.updateLayoutGuard = true
+        var result = d.removeItem_impl(item)
+        if (result !== null) {
+            d.calculateImplicitSize()
+            d.updateLayoutGuard = false
+            d.updateFillIndex()
+        }
+        else {
+            d.updateLayoutGuard = false
+        }
     }
 
     SystemPalette { id: pal }
 
     QtObject {
         id: d
+
+        readonly property string leftMargin: horizontal ? "leftMargin" : "topMargin"
+        readonly property string topMargin: horizontal ? "topMargin" : "leftMargin"
+        readonly property string rightMargin: horizontal ? "rightMargin" : "bottomMargin"
+
         property bool horizontal: orientation == Qt.Horizontal
         readonly property string minimum: horizontal ? "minimumWidth" : "minimumHeight"
         readonly property string maximum: horizontal ? "maximumWidth" : "maximumHeight"
@@ -212,6 +236,15 @@ Item {
         property int fillIndex: -1
         property bool updateLayoutGuard: true
 
+        function extraMarginSize(item, other) {
+            if (typeof(other) === 'undefined')
+                other = false;
+            if (other === horizontal)
+                // vertical
+                return item.Layout.topMargin + item.Layout.bottomMargin
+            return item.Layout.leftMargin + item.Layout.rightMargin
+        }
+
         function addItem_impl(item)
         {
             // temporarily set fillIndex to new item
@@ -220,17 +253,85 @@ Item {
                 handleLoader.createObject(splitterHandles, {"__handleIndex":splitterItems.children.length - 1})
 
             item.parent = splitterItems
+            d.initItemConnections(item)
+        }
 
-            // should match disconnections in Component.onDestruction
+        function initItemConnections(item)
+        {
+            // should match disconnections in terminateItemConnections
             item.widthChanged.connect(d.updateLayout)
             item.heightChanged.connect(d.updateLayout)
             item.Layout.maximumWidthChanged.connect(d.updateLayout)
             item.Layout.minimumWidthChanged.connect(d.updateLayout)
             item.Layout.maximumHeightChanged.connect(d.updateLayout)
             item.Layout.minimumHeightChanged.connect(d.updateLayout)
+            item.Layout.leftMarginChanged.connect(d.updateLayout)
+            item.Layout.topMarginChanged.connect(d.updateLayout)
+            item.Layout.rightMarginChanged.connect(d.updateLayout)
+            item.Layout.bottomMarginChanged.connect(d.updateLayout)
             item.visibleChanged.connect(d.updateFillIndex)
             item.Layout.fillWidthChanged.connect(d.updateFillIndex)
             item.Layout.fillHeightChanged.connect(d.updateFillIndex)
+        }
+
+        function terminateItemConnections(item)
+        {
+            // should match connections in initItemConnections
+            item.widthChanged.disconnect(d.updateLayout)
+            item.heightChanged.disconnect(d.updateLayout)
+            item.Layout.maximumWidthChanged.disconnect(d.updateLayout)
+            item.Layout.minimumWidthChanged.disconnect(d.updateLayout)
+            item.Layout.maximumHeightChanged.disconnect(d.updateLayout)
+            item.Layout.minimumHeightChanged.disconnect(d.updateLayout)
+            item.visibleChanged.disconnect(d.updateFillIndex)
+            item.Layout.fillWidthChanged.disconnect(d.updateFillIndex)
+            item.Layout.fillHeightChanged.disconnect(d.updateFillIndex)
+        }
+
+        function removeItem_impl(item)
+        {
+            var pos = itemPos(item)
+
+            // Check pos range
+            if (pos < 0 || pos >= __items.length)
+                return null
+
+            // Temporary unset the fillIndex
+            fillIndex = __items.length - 1
+
+            // Remove the handle at the left/right of the item that
+            // is going to be removed
+            var handlePos = -1
+            var hasPrevious = pos > 0
+            var hasNext = (pos + 1) < __items.length
+
+            if (hasPrevious)
+                handlePos = pos-1
+            else if (hasNext)
+                handlePos = pos
+            if (handlePos >= 0) {
+                var handle = __handles[handlePos]
+                handle.visible = false
+                handle.parent = null
+                handle.destroy()
+                for (var i = handlePos; i < __handles.length; ++i)
+                    __handles[i].__handleIndex = i
+            }
+
+            // Remove the item.
+            // Disconnect the item to be removed
+            terminateItemConnections(item)
+            item.parent = null
+
+            return item
+        }
+
+        function itemPos(item)
+        {
+            for (var i = 0; i < __items.length; ++i)
+                if (item === __items[i])
+                    return i
+            return -1
         }
 
         function init()
@@ -302,13 +403,13 @@ Item {
 
             for (var i=0; i<__items.length; ++i) {
                 var item = __items[i];
-                implicitSize += clampedMinMax(item[d.size], item.Layout[minimum], item.Layout[maximum])
-                var os = clampedMinMax(item[otherSize], item.Layout[otherMinimum], item.Layout[otherMaximum])
+                implicitSize += clampedMinMax(item[d.size], item.Layout[minimum], item.Layout[maximum]) + extraMarginSize(item)
+                var os = clampedMinMax(item[otherSize], item.Layout[otherMinimum], item.Layout[otherMaximum]) + extraMarginSize(item, true)
                 implicitOtherSize = Math.max(implicitOtherSize, os)
 
                 var handle = __handles[i]
                 if (handle)
-                    implicitSize += handle[d.size]
+                    implicitSize += handle[d.size]  //### Can handles have margins??
             }
 
             root[d.implicitSize] = implicitSize
@@ -327,16 +428,16 @@ Item {
         function accumulatedSize(firstIndex, lastIndex, includeFillItemMinimum)
         {
             // Go through items and handles, and
-            // calculate their acummulated width.
+            // calculate their accummulated width.
             var w = 0
             for (var i=firstIndex; i<lastIndex; ++i) {
 
                 var item = __items[i]
                 if (item.visible || i == d.fillIndex) {
                     if (i !== d.fillIndex)
-                        w += item[d.size];
+                        w += item[d.size] + extraMarginSize(item)
                     else if (includeFillItemMinimum && item.Layout[minimum] !== undefined)
-                        w += item.Layout[minimum]
+                        w += item.Layout[minimum] + extraMarginSize(item)
                 }
 
                 var handle = __handles[i]
@@ -374,29 +475,31 @@ Item {
             if (root[d.size] != 0) {
                 var fillItem = __items[fillIndex]
                 var superfluous = root[d.size] - d.accumulatedSize(0, __items.length, false)
-                var s = Math.max(superfluous, fillItem.Layout[minimum])
-                s = Math.min(s, fillItem.Layout[maximum])
-                fillItem[d.size] = s
+                fillItem[d.size] = clampedMinMax(superfluous - extraMarginSize(fillItem), fillItem.Layout[minimum], fillItem.Layout[maximum]);
             }
 
             // Position items and handles according to their width:
             var lastVisibleItem, lastVisibleHandle, handle
+            var pos = 0;
             for (i=0; i<__items.length; ++i) {
                 // Position item to the right of the previous visible handle:
                 item = __items[i];
                 if (item.visible || i == d.fillIndex) {
-                    item[d.offset] = lastVisibleHandle ? lastVisibleHandle[d.offset] + lastVisibleHandle[d.size] : 0
-                    item[d.otherOffset] = 0
-                    item[d.otherSize] = clampedMinMax(root[otherSize], item.Layout[otherMinimum], item.Layout[otherMaximum])
+                    pos += item.Layout[leftMargin]
+                    item[d.offset] = pos
+                    item[d.otherOffset] = item.Layout[topMargin]
+                    item[d.otherSize] = clampedMinMax(root[otherSize], item.Layout[otherMinimum], item.Layout[otherMaximum]) - extraMarginSize(item, true)
                     lastVisibleItem = item
+                    pos += Math.max(0, item[d.size]) + item.Layout[rightMargin]
                 }
 
                 handle = __handles[i]
                 if (handle && handle.visible) {
-                    handle[d.offset] = lastVisibleItem[d.offset] + Math.max(0, lastVisibleItem[d.size])
-                    handle[d.otherOffset] = 0
+                    handle[d.offset] = pos
+                    handle[d.otherOffset] = 0   //### can handles have margins?
                     handle[d.otherSize] = root[d.otherSize]
                     lastVisibleHandle = handle
+                    pos += handle[d.size]
                 }
             }
 
@@ -433,7 +536,7 @@ Item {
                 anchors.rightMargin: (parent.width <= 1) ? -defaultMargin : 0
                 anchors.topMargin: (parent.height <= 1) ? -defaultMargin : 0
                 anchors.bottomMargin: (parent.height <= 1) ? -defaultMargin : 0
-                hoverEnabled: true
+                hoverEnabled: Private.Settings.hoverEnabled
                 drag.threshold: 0
                 drag.target: parent
                 drag.axis: root.orientation === Qt.Horizontal ? Drag.XAxis : Drag.YAxis
@@ -524,17 +627,7 @@ Item {
     Component.onDestruction: {
         for (var i=0; i<splitterItems.children.length; ++i) {
             var item = splitterItems.children[i];
-
-            // should match connections in init()
-            item.widthChanged.disconnect(d.updateLayout)
-            item.heightChanged.disconnect(d.updateLayout)
-            item.Layout.maximumWidthChanged.disconnect(d.updateLayout)
-            item.Layout.minimumWidthChanged.disconnect(d.updateLayout)
-            item.Layout.maximumHeightChanged.disconnect(d.updateLayout)
-            item.Layout.minimumHeightChanged.disconnect(d.updateLayout)
-            item.visibleChanged.disconnect(d.updateFillIndex)
-            item.Layout.fillWidthChanged.disconnect(d.updateFillIndex)
-            item.Layout.fillHeightChanged.disconnect(d.updateFillIndex)
+            d.terminateItemConnections(item)
         }
     }
 }

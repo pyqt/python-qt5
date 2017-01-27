@@ -1,7 +1,8 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Copyright (C) 2015 Jolla Ltd, author: <gunnar.sletta@jollamobile.com>
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Graphical Effects module.
 **
@@ -17,8 +18,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -39,22 +40,21 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import "private"
+import QtGraphicalEffects.private 1.0
 
 /*!
     \qmltype Glow
-    \inqmlmodule QtGraphicalEffects 1.0
+    \inqmlmodule QtGraphicalEffects
     \since QtGraphicalEffects 1.0
     \inherits QtQuick2::Item
     \ingroup qtgraphicaleffects-glow
-    \brief Generates a blurred and colorized image of the source and places it
-    behind the original, giving impression that the source is glowing.
+    \brief Generates a halo like glow around the source item.
 
-    By default effect produces a high quality glow image, thus the rendering
-    speed of the effect may not be the highest possible. The rendering speed is
-    reduced especially if the glow edges are heavily softened. For use cases
-    that require faster rendering speed and the highest possible visual quality
-    is not necessary, property \l{Glow::fast}{fast} can be set to true.
+    The Glow effect blurs the alpha channel of the source and colorizes it
+    with \l {Glow::color}{color} and places it behind the source, resulting in a halo or glow
+    around the object. The quality of the blurred edge can be controlled using
+    \l samples and \l radius and the strenght of the glow can be changed using
+    \l spread.
 
     \table
     \header
@@ -65,6 +65,11 @@ import "private"
         \li \image Glow_butterfly.png
     \endtable
 
+    The glow is created by blurring the image live using a gaussian blur.
+    Performing blur live is a costly operation. Fullscreen gaussian blur with
+    even a moderate number of samples will only run at 60 fps on highend
+    graphics hardware.
+
     \section1 Example
 
     The following example shows how to apply the effect.
@@ -72,7 +77,16 @@ import "private"
 
 */
 Item {
-    id: rootItem
+    id: root
+
+    DropShadowBase {
+        id: dps
+        anchors.fill: parent
+        color: "white"
+        spread: 0.5
+        horizontalOffset: 0
+        verticalOffset: 0
+    }
 
     /*!
         This property defines the source item that is going to be used as source
@@ -81,7 +95,7 @@ Item {
         \note It is not supported to let the effect include itself, for
         instance by setting source to the effect's parent.
     */
-    property variant source
+    property alias source: dps.source
 
     /*!
         Radius defines the softness of the glow. A larger radius causes the
@@ -90,8 +104,18 @@ Item {
         Depending on the radius value, value of the \l{Glow::samples}{samples}
         should be set to sufficiently large to ensure the visual quality.
 
-        The value ranges from 0.0 (no blur) to inf. By default, the property is
-        set to \c 0.0 (no blur).
+        The ideal blur is acheived by selecting \c samples and \c radius such
+        that \c {samples = 1 + radius * 2}, such as:
+
+        \table
+        \header \li Radius             \li Samples
+        \row    \li 0 \e{(no blur)}    \li 1
+        \row    \li 1                  \li 3
+        \row    \li 2                  \li 5
+        \row    \li 3                  \li 7
+        \endtable
+
+        By default, the property is set to \c {floor(samples/2)}.
 
         \table
         \header
@@ -107,9 +131,9 @@ Item {
             \li \b { radius: 6 }
             \li \b { radius: 12 }
         \row
-            \li \l samples: 24
-            \li \l samples: 24
-            \li \l samples: 24
+            \li \l samples: 25
+            \li \l samples: 25
+            \li \l samples: 25
         \row
             \li \l color: #ffffff
             \li \l color: #ffffff
@@ -120,7 +144,7 @@ Item {
             \li \l spread: 0
         \endtable
     */
-    property real radius: 0.0
+    property alias radius: dps.radius
 
     /*!
         This property defines how many samples are taken per pixel when edge
@@ -128,18 +152,22 @@ Item {
         quality, but is slower to render.
 
         Ideally, this value should be twice as large as the highest required
-        radius value, for example, if the radius is animated between 0.0 and
-        4.0, samples should be set to 8.
+        radius value plus one, such as:
 
-        The value ranges from 0 to 32. By default, the property is set to \c 0.
+        \table
+        \header \li Radius             \li Samples
+        \row    \li 0 \e{(no blur)}    \li 1
+        \row    \li 1                  \li 3
+        \row    \li 2                  \li 5
+        \row    \li 3                  \li 7
+        \endtable
 
-        This property is not intended to be animated. Changing this property may
+        By default, the property is set to \c 9.
+
+        This property is not intended to be animated. Changing this property will
         cause the underlying OpenGL shaders to be recompiled.
-
-        When \l fast property is set to true, this property has no effect.
-
     */
-    property int samples: 0
+    property alias samples: dps.samples
 
     /*!
         This property defines how large part of the glow color is strenghtened
@@ -166,16 +194,16 @@ Item {
             \li \l radius: 8
             \li \l radius: 8
         \row
-            \li \l samples: 16
-            \li \l samples: 16
-            \li \l samples: 16
+            \li \l samples: 17
+            \li \l samples: 17
+            \li \l samples: 17
         \row
             \li \l color: #ffffff
             \li \l color: #ffffff
             \li \l color: #ffffff
         \endtable
     */
-    property real spread: 0.0
+    property alias spread: dps.spread
 
     /*!
         This property defines the RGBA color value which is used for the glow.
@@ -200,9 +228,9 @@ Item {
             \li \l radius: 8
             \li \l radius: 8
         \row
-            \li \l samples: 16
-            \li \l samples: 16
-            \li \l samples: 16
+            \li \l samples: 17
+            \li \l samples: 17
+            \li \l samples: 17
         \row
             \li \l spread: 0.5
             \li \l spread: 0.5
@@ -210,39 +238,15 @@ Item {
         \endtable
 
     */
-    property color color: "white"
+    property alias color: dps.color
 
     /*!
-        This property selects the blurring algorithm that is used to produce the
-        softness for the effect. Setting this to true enables fast algorithm,
-        setting value to false produces higher quality result.
+        \internal
 
-        By default, the property is set to \c false.
+        Starting Qt 5.6, this property has no effect. It is left here
+        for source compatibility only.
 
-        \table
-        \header
-        \li Output examples with different fast values
-        \li
-        \li
-        \row
-            \li \image Glow_fast1.png
-            \li \image Glow_fast2.png
-        \row
-            \li \b { fast: false }
-            \li \b { fast: true }
-        \row
-            \li \l radius: 16
-            \li \l radius: 16
-        \row
-            \li \l samples: 24
-            \li \l samples: 24
-        \row
-            \li \l color: #ffffff
-            \li \l color: #ffffff
-        \row
-            \li \l spread: 0.3
-            \li \l spread: 0.3
-        \endtable
+        ### Qt 6: remove
     */
     property bool fast: false
 
@@ -260,65 +264,26 @@ Item {
         By default, the property is set to \c false.
 
     */
-    property bool cached: false
+    property alias cached: dps.cached
 
     /*!
         This property determines whether or not the effect has a transparent
         border.
 
-        When set to \c true, the exterior of the item is padded with a 1 pixel
-        wide transparent edge, making sampling outside the source texture use
+        When set to \c true, the exterior of the item is padded with a
+        transparent edge, making sampling outside the source texture use
         transparency instead of the edge pixels. Without this property, an
         image which has opaque edges will not get a blurred edge.
+
+        By default, the property is set to \c true. Set it to false if the source
+        already has a transparent edge to make the blurring a tiny bit faster.
 
         In the snippet below, the Rectangle on the left has transparent borders
         and has blurred edges, whereas the Rectangle on the right does not.
 
         \snippet Glow-transparentBorder-example.qml example
 
-        \image transparentBorder.png
+        \image Glow-transparentBorder.png
     */
-    property bool transparentBorder: false
-
-    Loader {
-        anchors.fill: parent
-        sourceComponent: rootItem.fast ? fastGlow : gaussianGlow
-    }
-
-    Component {
-        id: gaussianGlow
-        GaussianGlow {
-            anchors.fill: parent
-            source: sourceProxy.output
-            radius: rootItem.radius
-            maximumRadius: rootItem.samples * 0.5
-            color: rootItem.color
-            cached: rootItem.cached
-            spread: rootItem.spread
-            transparentBorder: rootItem.transparentBorder
-        }
-    }
-
-    Component {
-        id: fastGlow
-        FastGlow {
-            anchors.fill: parent
-            source: sourceProxy.output
-            blur: Math.pow(rootItem.radius / 64.0, 0.4)
-            color: rootItem.color
-            cached: rootItem.cached
-            spread: rootItem.spread
-            transparentBorder: rootItem.transparentBorder
-        }
-    }
-
-    SourceProxy {
-        id: sourceProxy
-        input: rootItem.source
-        sourceRect: rootItem.transparentBorder ? Qt.rect(-1, -1, parent.width + 2.0, parent.height + 2.0) : Qt.rect(0, 0, 0, 0)
-    }
-    ShaderEffect {
-        anchors.fill: parent
-        property variant source: sourceProxy.output
-    }
+    property alias transparentBorder: dps.transparentBorder
 }

@@ -1,38 +1,37 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Quick Controls module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:BSD$
-** You may use this file under the terms of the BSD license as follows:
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
 **
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 **
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -46,6 +45,7 @@ import QtQuick.Controls.Private 1.0
     \qmltype StackView
     \inherits Item
     \ingroup views
+    \ingroup controls
     \inqmlmodule QtQuick.Controls
     \since 5.1
 
@@ -82,12 +82,12 @@ import QtQuick.Controls.Private 1.0
     \endqml
 
     \section1 Using StackView in an Application
-    Using the StackView in the application is typically a simple matter of adding
+    Using StackView in an application is typically a simple matter of adding
     the StackView as a child of a Window. The stack is usually anchored to the
     edges of the window, except at the top or bottom where it might be anchored
     to a status bar, or some other similar UI component. The stack can then be
     used by invoking its navigation methods. The first item to show in the StackView
-    is commonly loaded assigning it to \l initialItem.
+    is the one that was assigned to \l initialItem.
 
     \note Items pushed onto the stack view have \l{Supported Attached Properties}{Stack attached properties}.
 
@@ -96,7 +96,7 @@ import QtQuick.Controls.Private 1.0
     replace (replace by specifying argument \c replace to push()).
     These correspond to classic stack operations where "push" adds an item to the
     top of a stack, "pop" removes the top item from the stack, and "replace" is like a
-    pop followed by a push in that it replaces the topmost item on the stack with
+    pop followed by a push, in that it replaces the topmost item on the stack with
     a new item (but the applied transtition might be different). The topmost item
     in the stack corresponds to the one that is \l{StackView::currentItem} {currently}
     visible on the screen. That means that "push" is the logical equivalent of navigating
@@ -107,9 +107,9 @@ import QtQuick.Controls.Private 1.0
     example, to return to a "main" item or some kind of section item in the application.
     For this use case, it is possible to specify an item as a parameter for pop().
     This is called an "unwind" operation as the stack gets unwound to the specified item.
-    If the item is not found then the stack unwinds until there is only a single item in
-    the stack, which becomes the current item. To explicitly unwind to the bottom
-    of the stack it is recommended to use \l{pop()} {pop(null)}, though technically any
+    If the item is not found, then the stack unwinds until there is only a single item in
+    the stack, which then becomes the current item. To explicitly unwind to the bottom
+    of the stack, it is recommended to use \l{pop()} {pop(null)}, though technically any
     non-existent item will do.
 
     Given the stack [A, B, C]:
@@ -121,15 +121,15 @@ import QtQuick.Controls.Private 1.0
     \li \l{pop()}{pop(A)} => [A] - "pop" transition between C and A
     \endlist
 
-    \note Note that when the stack is empty, a push() will not perform a
+    \note When the stack is empty, a push() will not perform a
     transition animation because there is nothing to transition from (typically during
     application start-up). A pop() on a stack with depth 1 or 0 is a no-operation.
-    If removing all items from the stack is needed, a separate function clear() is
+    If all items need to be removed from the stack, a separate function clear() is
     available.
 
     Calling push() returns the item that was pushed onto the stack.
     Calling pop() returns the item that was popped off the stack. When pop() is
-    called in an unwind operation the top-most item (the first item that was
+    called in an unwind operation, the top-most item (the first item that was
     popped, which will also be the one transitioning out) is returned.
 
     \section1 Deep Linking
@@ -161,8 +161,8 @@ import QtQuick.Controls.Private 1.0
     \section1 Pushing items
 
     An item pushed onto the StackView can be either an Item, a URL, a string
-    with a URL, or a Component. To push it, assign it to a property "item"
-    inside a property list, and send it as an argument to \l{StackView::push}{push}:
+    containing a URL, or a Component. To push it, assign it to a property "item"
+    inside a property list, and pass it as an argument to \l{StackView::push}{push}:
 
     \code
     stackView.push({item: yourItem})
@@ -180,7 +180,7 @@ import QtQuick.Controls.Private 1.0
     \li \c replace: set this property to replace the current item on the stack. When pushing
         an array, you only need to set this property on the first element to replace
         as many elements on the stack as inside the array.
-    \li \c destroyOnPop: set this boolean to true if StackView needs to destroy the item when
+    \li \c destroyOnPop: set this boolean to \c true if StackView needs to destroy the item when
         it is popped off the stack. By default (if \a destroyOnPop is not specified), StackView
         will destroy items pushed as components or URLs. Items not destroyed will be re-parented
         back to the original parents they had before being pushed onto the stack and hidden.
@@ -194,7 +194,7 @@ import QtQuick.Controls.Private 1.0
     \endcode
 
     You can push several items in one go by using an array of property lists. This is
-    optimizing compared to pushing items one by one, since StackView then can load only the
+    more efficient than pushing items one by one, as StackView can then load only the
     last item in the list. The rest will be loaded as they are about to become
     the current item (which happens when the stack is popped). The following example shows how
     to push an array of items:
@@ -207,13 +207,13 @@ import QtQuick.Controls.Private 1.0
     is later popped off, it gets re-parented back to its original owner again.
     If, however, an item is pushed as a component or a URL, the actual item will be created as an
     item from that component. This happens automatically when the item is about to become the current
-    item in the stack. Ownership of the item will then normally be taken by the StackView. It will as
-    such automatically destroy the item when it is later popped off. The component that declared the item, by
+    item in the stack. Ownership of the item will then normally be taken by the StackView, which will
+    automatically destroy the item when it is later popped off. The component that declared the item, by
     contrast, remains in the ownership of the application and is not destroyed by the stack.
     This can be overridden by explicitly setting \c{destroyOnPop} in the list of arguments given to push.
 
     If the \c properties to be pushed are specified, they will be copied into the item at loading time
-    (in case of a component or URL), or when the item will become the current item (in case of an inline
+    (in case of a component or URL), or when the item becomes the current item (in case of an inline
     item). The following example shows how this can be done:
 
     \code
@@ -221,7 +221,7 @@ import QtQuick.Controls.Private 1.0
     \endcode
 
 
-    \note Note that if an item is declared inside another item, and if that parent gets destroyed,
+    \note If an item is declared inside another item, and that parent gets destroyed,
     (even if a component was used), that child item will also be destroyed.
     This follows normal Qt parent-child destruction rules, but sometimes comes as a surprise
     for developers.
@@ -246,10 +246,10 @@ import QtQuick.Controls.Private 1.0
     Popping the item off the top of the stack at this point would not result in further
     deactivation since the item is not active.
 
-    There is an attached \l{Stack::status}{Stack.status} property that tracks the lifecycle. The
-    status values list is an enumeration with values \c Stack.Inactive, \c Stack.Activating,
+    There is an attached \l{Stack::status}{Stack.status} property that tracks the lifecycle. This
+    property is an enumeration with the following values: \c Stack.Inactive, \c Stack.Activating,
     \c Stack.Active and \c Stack.Deactivating. Combined with the normal \c Component.onComplete and
-    \c Component.onDestruction signals the entire lifecycle is thus:
+    \c Component.onDestruction signals, the entire lifecycle is thus:
 
     \list
     \li Created: Component.onCompleted()
@@ -292,14 +292,15 @@ import QtQuick.Controls.Private 1.0
 
     A transition is performed whenever a item is pushed or popped, and consists of
     two items: enterItem and exitItem. The StackView itself will never move items
-    around, but instead delegate the job to an external animation set provided
+    around, but instead delegates the job to an external animation set provided
     by the style or the application developer. How items should visually enter and leave the stack
     (and the geometry they should end up with) is therefore completely controlled from the outside.
 
     When the transition starts, the StackView will search for a transition that
     matches the operation executed. There are three transitions to choose
-    from: pushTransition, popTransition, and replaceTransition. Each implements how
-    enterItem should animate in, and exitItem out. The transitions are
+    from: \l {StackViewDelegate::}{pushTransition}, \l {StackViewDelegate::}{popTransition},
+    and \l {StackViewDelegate::}{replaceTransition}. Each implements how
+    \c enterItem should animate in, and \c exitItem out. The transitions are
     collected inside a StackViewDelegate object assigned to
     \l {StackView::delegate}{delegate}. By default, popTransition and
     replaceTransition will be the same as pushTransition, unless you set them
@@ -334,9 +335,9 @@ import QtQuick.Controls.Private 1.0
     \endqml
 
     PushTransition needs to inherit from StackViewTransition, which is a ParallelAnimation that
-    contains the properties \c enterItem and \c exitItem. You set the target of your
-    inner animations to those items. Since the same items instance can be pushed several
-    times to a StackView, you should always override
+    contains the properties \c enterItem and \c exitItem. These items should be assigned to the
+    \c target property of animations within the transition. Since the same items instance can
+    be pushed several times to a StackView, you should always override
     \l {StackViewDelegate::transitionFinished()}{StackViewDelegate.transitionFinished()}.
     Implement this function to reset any properties animated on the exitItem so that later
     transitions can expect the items to be in a default state.
@@ -400,7 +401,7 @@ import QtQuick.Controls.Private 1.0
     transition to return. You could for example introspect the items, and return different animations
     depending on the their internal state. StackView will expect you to return a Component that
     contains a StackViewTransition, or a StackViewTransition directly. The former is easier, as StackView will
-    then create the transition and later destroy it when it's done, while avoiding any sideeffects
+    then create the transition and later destroy it when it's done, while avoiding any side effects
     caused by the transition being alive long after it has run. Returning a StackViewTransition directly
     can be useful if you need to write some sort of transition caching for performance reasons.
     As an optimization, you can also return \c null to signal that you just want to show/hide the items
@@ -412,7 +413,7 @@ import QtQuick.Controls.Private 1.0
     if you need to initialize additional properties of your custom StackViewTransition when the returned
     component is instantiated.
 
-    The following example shows how you can decide which animation to use during runtime :
+    The following example shows how you can decide which animation to use at runtime:
 
     \qml
     StackViewDelegate {
@@ -473,7 +474,7 @@ import QtQuick.Controls.Private 1.0
     \endlist
 */
 
-Item {
+FocusScope {
     id: root
 
     /*! \qmlproperty int StackView::depth
@@ -488,7 +489,7 @@ Item {
     */
     readonly property alias currentItem: root.__currentItem
 
-    /*! The first \l item that should be shown when the StackView is created.
+    /*! The first item that should be shown when the StackView is created.
         \a initialItem can take same value as the first argument to \l{StackView::push()}
         {StackView.push()}. Note that this is just a convenience for writing
         \c{Component.onCompleted: stackView.push(myInitialItem)}
@@ -510,10 +511,13 @@ Item {
 
     /*! The transitions to use when pushing or popping items.
         For better understanding on how to apply custom transitions, read \l{Transitions}.
-        \sa {Stack::transitions}{Stack.transitions} */
+        \sa {Transitions} */
     property StackViewDelegate delegate: StackViewSlideDelegate {}
 
-    /*! Pushes an item onto the stack. The function takes a property list as argument, which
+    /*! \qmlmethod Item StackView::push(Item item)
+        Pushes an item onto the stack.
+
+        The function can also take a property list as argument - \c {Item StackView::push(jsobject dict)}, which
         should contain one or more of the following properties:
         \list
         \li \c item: this property is required, and holds the item you want to push.
@@ -549,7 +553,7 @@ Item {
         \li stackView.push([{item:anitem, immediate:true}, {item:aURL}])
         \endlist
 
-        \note Note: if the only argument needed is "item", you can apply the following short-
+        \note If the only argument needed is "item", you can apply the following short-
         hand notation: \c{stackView.push(anItem)}.
 
         Returns the item that became current.
@@ -603,7 +607,10 @@ Item {
         return __currentItem
     }
 
-    /*! Pops one or more items off the stack. The function takes a property list as argument
+    /*! \qmlmethod Item StackView::pop(Item item = undefined)
+        Pops one or more items off the stack.
+
+        The function can also take a property list as argument - \c {Item StackView::pop(jsobject dict)},
         which can contain one or more of the following properties:
         \list
         \li \c item: if specified, all items down to (but not including) \a item will be
@@ -621,7 +628,7 @@ Item {
         \li stackView.pop(null)
         \endlist
 
-        \note Note: If the only argument needed is "item", you can apply the following short-
+        \note If the only argument needed is "item", you can apply the following short-
         hand notation: \c{stackView.pop(anItem)}.
 
         Returns the item that was popped off
@@ -675,7 +682,8 @@ Item {
         return outElement.item;
     }
 
-    /*! Remove all items from the stack. No animations will be applied. */
+    /*! \qmlmethod void StackView::clear()
+        Remove all items from the stack. No animations will be applied. */
     function clear() {
         if (__recursionGuard(true))
             return
@@ -691,7 +699,8 @@ Item {
         __recursionGuard(false)
     }
 
-    /*! Search for a specific item inside the stack. \a func will
+    /*! \qmlmethod Item StackView::find(function, bool onlySearchLoadedItems = false)
+        Search for a specific item inside the stack. \a func will
         be called for each item in the stack (with the item as argument)
         until the function returns true. Return value will be the item found. For
         example:
@@ -711,7 +720,8 @@ Item {
         return null;
     }
 
-    /*! Returns the item at position \a index in
+    /*! \qmlmethod Item StackView::get(int index, bool dontLoad = false)
+        Returns the item at position \a index in
         the stack. If \a dontLoad is true, the
         item will not be forced to load (and \c null
         will be returned if not yet loaded) */
@@ -730,7 +740,8 @@ Item {
         }
     }
 
-    /*! Immediately completes any ongoing transition.
+    /*! \qmlmethod void StackView::completeTransition()
+        Immediately completes any ongoing transition.
         /sa Animation.complete
       */
     function completeTransition()
@@ -751,9 +762,6 @@ Item {
     }
 
     /********* PRIVATE API *********/
-
-    width: parent ? parent.width : 0
-    height: parent ? parent.height : 0
 
     /*! \internal The currently top-most item on the stack. */
     property Item __currentItem: null
