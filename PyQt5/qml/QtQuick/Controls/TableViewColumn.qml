@@ -1,38 +1,37 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Quick Controls module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:BSD$
-** You may use this file under the terms of the BSD license as follows:
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
 **
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 **
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -45,11 +44,12 @@ import QtQuick 2.2
     \inqmlmodule QtQuick.Controls
     \since 5.1
     \ingroup viewitems
-    \brief Used to define columns in a \l TableView.
+    \ingroup controls
+    \brief Used to define columns in a \l TableView or in a \l TreeView.
 
     \image tableview.png
 
-    TableViewColumn represents a column within a TableView. It provides
+    TableViewColumn represents a column within a TableView or a TreeView. It provides
     properties to decide how the data in that column is presented.
 
     \qml
@@ -60,7 +60,7 @@ import QtQuick 2.2
     }
     \endqml
 
-    \sa TableView
+    \sa TableView, TreeView
 */
 
 QtObject {
@@ -77,7 +77,7 @@ QtObject {
     /*! The model \c role of the column. */
     property string role
 
-    /*! The current width of the column
+    /*! The current width of the column.
     The default value depends on platform. If only one
     column is defined, the width expands to the viewport.
     */
@@ -105,7 +105,7 @@ QtObject {
         \li Text.ElideMiddle
         \li Text.ElideRight - the default
     \endlist
-    \sa {QtQuick::}{Text::elide} */
+    \sa {Text::elide}{elide} */
     property int elideMode: Text.ElideRight
 
     /*! \qmlproperty enumeration TableViewColumn::horizontalAlignment
@@ -117,11 +117,11 @@ QtObject {
         \li Text.AlignHCenter
         \li Text.AlignJustify
     \endlist
-    \sa {QtQuick::}{Text::horizontalAlignment} */
+    \sa {Text::horizontalAlignment}{horizontalAlignment} */
     property int horizontalAlignment: Text.AlignLeft
 
-    /*! The delegate of the column. This can be used to set the
-    \l TableView::itemDelegate for a specific column.
+    /*! The delegate of the column. This can be used to set the itemDelagate
+    of a \l TableView or \l TreeView for a specific column.
 
     In the delegate you have access to the following special properties:
     \list
@@ -138,19 +138,34 @@ QtObject {
 
     Accessible.role: Accessible.ColumnHeader
 
-    /*! Resizes the column so that the implicitWidth of the contents on every row will fit.
+    /*! \qmlmethod void TableViewColumn::resizeToContents()
+        Resizes the column so that the implicitWidth of the contents on every row will fit.
         \since QtQuick.Controls 1.2 */
     function resizeToContents() {
         var minWidth = 0
         var listdata = __view.__listView.children[0]
-        for (var i = 0; __index < 0 && i < __view.__columns.length; ++i)
+        for (var i = 0; __index === -1 && i < __view.__columns.length; ++i) {
             if (__view.__columns[i] === this)
                 __index = i
+        }
+        // ### HACK We don't have direct access to the instantiated item,
+        // so we go spelunking. Each 'item' variable check is annotated
+        // with the expected object it should point to in BasicTableView.
         for (var row = 0 ; row < listdata.children.length ; ++row) {
             var item = listdata.children[row] ? listdata.children[row].rowItem : undefined
-            if (item && item.children[1] && item.children[1].children[__index] && item.children[1].children[__index].children[0] &&
-                    item.children[1].children[__index].children[0].hasOwnProperty("implicitWidth"))
-                minWidth = Math.max(minWidth, item.children[1].children[__index].children[0].implicitWidth)
+            if (item) { // FocusScope { id: rowitem }
+                item = item.children[1]
+                if (item) { // Row { id: itemrow }
+                    item = item.children[__index]
+                    if (item) { // Repeater.delegate a.k.a. __view.__itemDelegateLoader
+                        var indent = __view.__isTreeView && __index === 0 ? item.__itemIndentation : 0
+                        item  = item.item
+                        if (item && item.hasOwnProperty("implicitWidth")) {
+                            minWidth = Math.max(minWidth, item.implicitWidth + indent)
+                        }
+                    }
+                }
+            }
         }
         if (minWidth)
             width = minWidth

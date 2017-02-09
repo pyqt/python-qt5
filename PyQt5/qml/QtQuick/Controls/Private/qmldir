@@ -31,5 +31,7 @@ TextHandle 1.0 TextHandle.qml
 TextInputWithHandles 1.0 TextInputWithHandles.qml
 EditMenu 1.0 EditMenu.qml
 EditMenu_base 1.0 EditMenu_base.qml
-EditMenu_ios 1.0 EditMenu_ios.qml
 ToolMenuButton 1.0 ToolMenuButton.qml
+BasicTableView 1.0 BasicTableView.qml
+TableViewItemDelegateLoader 1.0 TableViewItemDelegateLoader.qml
+TreeViewItemDelegateLoader 1.0 TreeViewItemDelegateLoader.qml

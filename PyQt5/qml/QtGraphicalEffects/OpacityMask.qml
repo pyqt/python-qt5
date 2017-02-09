@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Graphical Effects module.
 **
@@ -17,8 +17,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -39,11 +39,11 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import "private"
+import QtGraphicalEffects.private 1.0
 
 /*!
     \qmltype OpacityMask
-    \inqmlmodule QtGraphicalEffects 1.0
+    \inqmlmodule QtGraphicalEffects
     \since QtGraphicalEffects 1.0
     \inherits QtQuick2::Item
     \ingroup qtgraphicaleffects-mask
@@ -114,6 +114,21 @@ Item {
     */
     property bool cached: false
 
+    /*!
+        This property controls how the alpha values of the sourceMask will behave.
+
+        If this property is \c false, the resulting opacity is the source alpha
+        multiplied with the mask alpha, \c{As * Am}.
+
+        If this property is \c true, the resulting opacity is the source alpha
+        multiplied with the inverse of the mask alpha, \c{As * (1 - Am)}.
+
+        The default is \c false.
+
+        \since 5.7
+    */
+    property bool invert: false
+
     SourceProxy {
         id: sourceProxy
         input: rootItem.source
@@ -147,7 +162,9 @@ Item {
             uniform lowp sampler2D source;
             uniform lowp sampler2D maskSource;
             void main(void) {
-                gl_FragColor = texture2D(source, qt_TexCoord0.st) * (texture2D(maskSource, qt_TexCoord0.st).a) * qt_Opacity;
+                gl_FragColor = texture2D(source, qt_TexCoord0.st) * ("
+                    + (invert ? "1.0 - " : "")
+                    + "texture2D(maskSource, qt_TexCoord0.st).a) * qt_Opacity;
             }
         "
     }

@@ -1,31 +1,37 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL21$
+** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 or version 3 as published by the Free
-** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-** following information to ensure the GNU Lesser General Public License
-** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -216,14 +222,16 @@ Item {
     /*! \internal */
     function qtest_update() {
         if (qtest_prevTarget != null) {
-            var prevFunc = qtest_prevTarget[qtest_prevSignalName]
+            var prevHandlerName = qtest_signalHandlerName(qtest_prevSignalName)
+            var prevFunc = qtest_prevTarget[prevHandlerName]
             if (prevFunc)
                 prevFunc.disconnect(spy.qtest_activated)
             qtest_prevTarget = null
             qtest_prevSignalName = ""
         }
         if (target != null && signalName != "") {
-            var func = target[signalName]
+            var handlerName = qtest_signalHandlerName(signalName)
+            var func = target[handlerName]
             if (func === undefined) {
                 spy.qtest_valid = false
                 console.log("Signal '" + signalName + "' not found")
@@ -243,5 +251,12 @@ Item {
     function qtest_activated() {
         ++qtest_count
         spy.qtest_signalArguments[spy.qtest_signalArguments.length] = arguments
+    }
+
+    /*! \internal */
+    function qtest_signalHandlerName(sn) {
+        if (sn.substr(0, 2) === "on" && sn[2] === sn[2].toUpperCase())
+            return sn
+        return "on" + sn.substr(0, 1).toUpperCase() + sn.substr(1)
     }
 }

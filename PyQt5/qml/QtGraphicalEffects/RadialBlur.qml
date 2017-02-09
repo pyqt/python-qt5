@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Graphical Effects module.
 **
@@ -17,8 +17,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -39,11 +39,11 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import "private"
+import QtGraphicalEffects.private 1.0
 
 /*!
     \qmltype RadialBlur
-    \inqmlmodule QtGraphicalEffects 1.0
+    \inqmlmodule QtGraphicalEffects
     \since QtGraphicalEffects 1.0
     \inherits QtQuick2::Item
     \ingroup qtgraphicaleffects-motion-blur
@@ -54,8 +54,8 @@ import "private"
     rotating to the direction of the blur.
 
     Other available motionblur effects are
-    \l{QtGraphicalEffects1::ZoomBlur}{ZoomBlur} and
-    \l{QtGraphicalEffects1::DirectionalBlur}{DirectionalBlur}.
+    \l{QtGraphicalEffects::ZoomBlur}{ZoomBlur} and
+    \l{QtGraphicalEffects::DirectionalBlur}{DirectionalBlur}.
 
     \table
     \header
@@ -136,8 +136,8 @@ Item {
     property int samples: 0
 
     /*!
-        \qmlproperty real QtGraphicalEffects1::RadialBlur::horizontalOffset
-        \qmlproperty real QtGraphicalEffects1::RadialBlur::verticalOffset
+        \qmlproperty real QtGraphicalEffects::RadialBlur::horizontalOffset
+        \qmlproperty real QtGraphicalEffects::RadialBlur::verticalOffset
 
         These properties define the offset in pixels for the perceived center
         point of the rotation.

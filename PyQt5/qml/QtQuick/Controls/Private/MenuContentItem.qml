@@ -1,38 +1,37 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Quick Controls module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:BSD$
-** You may use this file under the terms of the BSD license as follows:
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
 **
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 **
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -41,11 +40,14 @@
 import QtQuick 2.2
 import QtQuick.Controls 1.2
 import QtQuick.Controls.Styles 1.1
+import QtQuick.Controls.Private 1.0
 
 Loader {
     id: menuFrameLoader
 
-    property var __menu: root
+    property var __menu
+
+    Accessible.role: Accessible.PopupMenu
 
     visible: status === Loader.Ready
     width: content.width + (d.style ? d.style.padding.left + d.style.padding.right : 0)
@@ -71,7 +73,7 @@ Loader {
 
         function canBeHovered(index) {
             var item = content.menuItemAt(index)
-            if (item && item.styleData.type !== MenuItemType.Separator && item.styleData.enabled) {
+            if (item && item.visible && item.styleData.type !== MenuItemType.Separator && item.styleData.enabled) {
                 __menu.__currentIndex = index
                 return true
             }
@@ -81,15 +83,16 @@ Loader {
         function triggerCurrent() {
             var item = content.menuItemAt(__menu.__currentIndex)
             if (item)
-                content.triggered(item)
+                triggerAndDismiss(item)
         }
 
         function triggerAndDismiss(item) {
-            if (item && item.styleData.type !== MenuItemType.Separator) {
-                __menu.__dismissMenu()
-                if (item.styleData.type !== MenuItemType.Menu)
-                    item.__menuItem.trigger()
-            }
+            if (!item)
+                return;
+            if (item.styleData.type === MenuItemType.Separator)
+                __menu.__dismissAndDestroy()
+            else if (item.styleData.type === MenuItemType.Item)
+                item.__menuItem.trigger()
         }
     }
 
@@ -112,7 +115,7 @@ Loader {
         }
     }
 
-    Keys.onEscapePressed: __menu.__dismissMenu()
+    Keys.onEscapePressed: __menu.__dismissAndDestroy()
 
     Keys.onDownPressed: {
         if (__menu.__currentIndex < 0)
@@ -133,14 +136,18 @@ Loader {
 
     Keys.onLeftPressed: {
         if ((event.accepted = __menu.__parentMenu.hasOwnProperty("title")))
-            __closeMenu()
+            __menu.__closeAndDestroy()
     }
 
     Keys.onRightPressed: {
         var item = content.menuItemAt(__menu.__currentIndex)
-        if ((event.accepted = (item && item.styleData.type === MenuItemType.Menu))) {
+        if (item && item.styleData.type === MenuItemType.Menu
+                 && !item.__menuItem.__popupVisible) {
             item.__showSubMenu(true)
             item.__menuItem.__currentIndex = 0
+            event.accepted = true
+        } else {
+            event.accepted = false
         }
     }
 
@@ -165,13 +172,26 @@ Loader {
         itemsModel: __menu.items
         minWidth: __menu.__minimumWidth
         maxHeight: d.style ? d.style.__maxPopupHeight : 0
-        onTriggered: if (item.__menuItem.enabled) d.triggerAndDismiss(item)
+        onTriggered: d.triggerAndDismiss(item)
     }
 
     Component {
         id: menuItemComponent
         Loader {
             id: menuItemLoader
+
+            Accessible.role: opts.type === MenuItemType.Item || opts.type === MenuItemType.Menu ?
+                                 Accessible.MenuItem : Accessible.NoRole
+            Accessible.name: StyleHelpers.removeMnemonics(opts.text)
+            Accessible.checkable: opts.checkable
+            Accessible.checked: opts.checked
+            Accessible.onPressAction: {
+                if (opts.type === MenuItemType.Item) {
+                    d.triggerAndDismiss(menuItemLoader)
+                } else if (opts.type === MenuItemType.Menu) {
+                    __showSubMenu(true /*immediately*/)
+                }
+            }
 
             property QtObject styleData: QtObject {
                 id: opts
@@ -232,7 +252,7 @@ Loader {
                 interval: 1
                 onTriggered: {
                     if (__menu.__currentIndex !== __menuItemIndex)
-                        __menuItem.__closeMenu()
+                        __menuItem.__closeAndDestroy()
                 }
             }
 

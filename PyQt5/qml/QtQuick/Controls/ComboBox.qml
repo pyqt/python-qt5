@@ -1,38 +1,37 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the Qt Quick Controls module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:BSD$
-** You may use this file under the terms of the BSD license as follows:
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
 **
-** "Redistribution and use in source and binary forms, with or without
-** modification, are permitted provided that the following conditions are
-** met:
-**   * Redistributions of source code must retain the above copyright
-**     notice, this list of conditions and the following disclaimer.
-**   * Redistributions in binary form must reproduce the above copyright
-**     notice, this list of conditions and the following disclaimer in
-**     the documentation and/or other materials provided with the
-**     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
-**     from this software without specific prior written permission.
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 **
-**
-** THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-** "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-** LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-** A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-** OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-** SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-** LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-** DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-** THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-** (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-** OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE."
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -103,7 +102,7 @@ import QtQuick.Controls.Private 1.0
 
 
     You can create a custom appearance for a ComboBox by
-    assigning a \l {QtQuick.Controls.Styles::ComboBoxStyle}{ComboBoxStyle}.
+    assigning a \l {ComboBoxStyle}.
 */
 
 Control {
@@ -149,6 +148,50 @@ Control {
     */
     property alias editText: input.text
 
+    /*! \qmlproperty enumeration ComboBox::inputMethodHints
+        \since QtQuick.Controls 1.5
+    Provides hints to the input method about the expected content of the combo box and how it
+    should operate.
+
+    The value is a bit-wise combination of flags or \c Qt.ImhNone if no hints are set.
+
+    Flags that alter behavior are:
+
+    \list
+    \li Qt.ImhHiddenText - Characters should be hidden, as is typically used when entering passwords.
+    \li Qt.ImhSensitiveData - Typed text should not be stored by the active input method
+            in any persistent storage like predictive user dictionary.
+    \li Qt.ImhNoAutoUppercase - The input method should not try to automatically switch to upper case
+            when a sentence ends.
+    \li Qt.ImhPreferNumbers - Numbers are preferred (but not required).
+    \li Qt.ImhPreferUppercase - Upper case letters are preferred (but not required).
+    \li Qt.ImhPreferLowercase - Lower case letters are preferred (but not required).
+    \li Qt.ImhNoPredictiveText - Do not use predictive text (i.e. dictionary lookup) while typing.
+
+    \li Qt.ImhDate - The text editor functions as a date field.
+    \li Qt.ImhTime - The text editor functions as a time field.
+    \endlist
+
+    Flags that restrict input (exclusive flags) are:
+
+    \list
+    \li Qt.ImhDigitsOnly - Only digits are allowed.
+    \li Qt.ImhFormattedNumbersOnly - Only number input is allowed. This includes decimal point and minus sign.
+    \li Qt.ImhUppercaseOnly - Only upper case letter input is allowed.
+    \li Qt.ImhLowercaseOnly - Only lower case letter input is allowed.
+    \li Qt.ImhDialableCharactersOnly - Only characters suitable for phone dialing are allowed.
+    \li Qt.ImhEmailCharactersOnly - Only characters suitable for email addresses are allowed.
+    \li Qt.ImhUrlCharactersOnly - Only characters suitable for URLs are allowed.
+    \endlist
+
+    Masks:
+
+    \list
+    \li Qt.ImhExclusiveInputMask - This mask yields nonzero if any of the exclusive flags are used.
+    \endlist
+    */
+    property alias inputMethodHints: input.inputMethodHints
+
     /*! This property specifies whether the combobox should gain active focus when pressed.
         The default value is \c false. */
     property bool activeFocusOnPress: false
@@ -170,7 +213,8 @@ Control {
     */
     readonly property alias count: popupItems.count
 
-    /*! Returns the text for a given \a index.
+    /*! \qmlmethod string ComboBox::textAt(int index)
+        Returns the text for a given \a index.
         If an invalid index is provided, \c null is returned
         \since QtQuick.Controls 1.1
     */
@@ -180,7 +224,8 @@ Control {
         return popupItems.objectAt(index).text;
     }
 
-    /*! Finds and returns the index of a given \a text
+    /*! \qmlmethod int ComboBox::find(string text)
+        Finds and returns the index of a given \a text
         If no match is found, \c -1 is returned. The search is case sensitive.
         \since QtQuick.Controls 1.1
     */
@@ -198,8 +243,8 @@ Control {
         an intermediate state. The accepted signal will only be sent
         if the text is in an acceptable state when enter is pressed.
 
-        Currently supported validators are \l{QtQuick::}{IntValidator},
-        \l{QtQuick::}{DoubleValidator}, and \l{QtQuick::}{RegExpValidator}. An
+        Currently supported validators are \l[QtQuick]{IntValidator},
+        \l[QtQuick]{DoubleValidator}, and \l[QtQuick]{RegExpValidator}. An
         example of using validators is shown below, which allows input of
         integers between 11 and 31 into the text field:
 
@@ -291,18 +336,19 @@ Control {
         \qmlsignal ComboBox::activated(int index)
         \since QtQuick.Controls 1.1
 
-        \a index is the triggered model index or -1 if a new string is accepted
-
         This signal is similar to currentIndex changed, but will only
-        be emitted if the combo box index was changed by the user and not
-        when set programatically.
+        be emitted if the combo box index was changed by the user, not
+        when set programmatically.
+
+        \a index is the activated model index, or \c -1 if a new string is
+        accepted.
 
         The corresponding handler is \c onActivated.
     */
     signal activated(int index)
 
     /*!
-        \qmlmethod ComboBox::selectAll()
+        \qmlmethod void ComboBox::selectAll()
         \since QtQuick.Controls 1.1
 
         Causes all \l editText to be selected.
@@ -336,7 +382,7 @@ Control {
     /*! \internal */
     property var __popup: popup
 
-    style: Qt.createComponent(Settings.style + "/ComboBoxStyle.qml", comboBox)
+    style: Settings.styleComponent(Settings.style, "ComboBoxStyle.qml", comboBox)
 
     activeFocusOnTab: true
 
@@ -349,7 +395,7 @@ Control {
         property bool overridePressed: false
         readonly property bool effectivePressed: (pressed || overridePressed) && containsMouse
         anchors.fill: parent
-        hoverEnabled: true
+        hoverEnabled: Settings.hoverEnabled
         onPressed: {
             if (comboBox.activeFocusOnPress)
                 forceActiveFocus()
@@ -512,6 +558,8 @@ Control {
 
     onTextRoleChanged: popup.resolveTextValue(textRole)
 
+    ExclusiveGroup { id: eg }
+
     Menu {
         id: popup
         objectName: "popup"
@@ -519,7 +567,7 @@ Control {
         style: isPopup ? __style.__popupStyle : __style.__dropDownStyle
 
         property string currentText: selectedText
-        onSelectedTextChanged: if (selectedText) popup.currentText = selectedText
+        onSelectedTextChanged: popup.currentText = selectedText
 
         property string selectedText
         on__SelectedIndexChanged: {
@@ -536,8 +584,6 @@ Control {
         property int y: isPopup ? (comboBox.__panel.height - comboBox.__panel.implicitHeight) / 2.0 : comboBox.__panel.height
         __minimumWidth: comboBox.width
         __visualItem: comboBox
-
-        property ExclusiveGroup eg: ExclusiveGroup { id: eg }
 
         property bool modelIsArray: false
 
@@ -627,7 +673,7 @@ Control {
 
         function toggleShow() {
             if (popup.__popupVisible) {
-                popup.__dismissMenu()
+                popup.__dismissAndDestroy()
             } else {
                 if (items[__selectedIndex])
                     items[__selectedIndex].checked = true
@@ -643,7 +689,7 @@ Control {
             var selectedItem;
             if (__selectedIndex !== -1 && (selectedItem = items[__selectedIndex])) {
                 input.editTextMatches = true
-                selectedText = selectedItem.text
+                selectedText = Qt.binding(function () { return selectedItem.text })
                 if (currentText !== selectedText) // __selectedIndex went form -1 to 0
                     selectedTextChanged()
             }
@@ -653,7 +699,10 @@ Control {
     // The key bindings below will only be in use when popup is
     // not visible. Otherwise, native popup key handling will take place:
     Keys.onSpacePressed: {
-        popup.toggleShow()
+        if (!editable)
+            popup.toggleShow()
+        else
+            event.accepted = false
     }
 
     Keys.onUpPressed: __selectPrevItem()

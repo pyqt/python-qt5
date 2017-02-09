@@ -1,31 +1,37 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2016 The Qt Company Ltd.
+** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the test suite of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL21$
+** $QT_BEGIN_LICENSE:LGPL$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see https://www.qt.io/terms-conditions. For further
+** information use the contact form at https://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 or version 3 as published by the Free
-** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-** following information to ensure the GNU Lesser General Public License
-** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPL3 included in the
+** packaging of this file. Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl-3.0.html.
 **
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or (at your option) the GNU General
+** Public license version 3 or any later version approved by the KDE Free
+** Qt Foundation. The licenses are as published by the Free Software
+** Foundation and appearing in the file LICENSE.GPL2 and LICENSE.GPL3
+** included in the packaging of this file. Please review the following
+** information to ensure the GNU General Public License requirements will
+** be met: https://www.gnu.org/licenses/gpl-2.0.html and
+** https://www.gnu.org/licenses/gpl-3.0.html.
 **
 ** $QT_END_LICENSE$
 **
@@ -191,7 +197,7 @@ import Qt.test.qtestroot 1.0
     }
     \endcode
 
-    The mousePress(), mouseRelease(), mouseClick(), mouseDoubleClick(),
+    The mousePress(), mouseRelease(), mouseClick(), mouseDoubleClick(), mouseDoubleClickSequence()
     and mouseMove() methods can be used to simulate mouse events in a
     similar fashion.
 
@@ -613,12 +619,19 @@ Item {
         \li blue(x, y) Returns the blue channel value of the pixel at \a x, \a y position
         \li alpha(x, y) Returns the alpha channel value of the pixel at \a x, \a y position
         \li pixel(x, y) Returns the color value of the pixel at \a x, \a y position
+        \li equals(image) Returns \c true if this image is identical to \a image -
+            see \l QImage::operator== (since 5.6)
+
         For example:
 
         \code
         var image = grabImage(rect);
         compare(image.red(10, 10), 255);
         compare(image.pixel(20, 20), Qt.rgba(255, 0, 0, 255));
+
+        rect.width += 10;
+        var newImage = grabImage(rect);
+        verify(!newImage.equals(image));
         \endcode
 
         \endlist
@@ -846,6 +859,8 @@ Item {
     function waitForRendering(item, timeout) {
         if (timeout === undefined)
             timeout = 5000
+        if (!item)
+            qtest_fail("No item given to waitForRendering", 1)
         return qtest_results.waitForRendering(item, timeout)
     }
 
@@ -866,6 +881,9 @@ Item {
         Simulates pressing a \a key with an optional \a modifier on the currently
         focused item.  If \a delay is larger than 0, the test will wait for
         \a delay milliseconds.
+
+        The event will be sent to the TestCase window or, in case of multiple windows,
+        to the current active window. See \l QGuiApplication::focusWindow() for more details.
 
         \b{Note:} At some point you should release the key using keyRelease().
 
@@ -892,6 +910,9 @@ Item {
         focused item.  If \a delay is larger than 0, the test will wait for
         \a delay milliseconds.
 
+        The event will be sent to the TestCase window or, in case of multiple windows,
+        to the current active window. See \l QGuiApplication::focusWindow() for more details.
+
         \sa keyPress(), keyClick()
     */
     function keyRelease(key, modifiers, delay) {
@@ -915,6 +936,9 @@ Item {
         focused item.  If \a delay is larger than 0, the test will wait for
         \a delay milliseconds.
 
+        The event will be sent to the TestCase window or, in case of multiple windows,
+        to the current active window. See \l QGuiApplication::focusWindow() for more details.
+
         \sa keyPress(), keyRelease()
     */
     function keyClick(key, modifiers, delay) {
@@ -932,36 +956,45 @@ Item {
     }
 
     /*!
-        \qmlmethod TestCase::mousePress(item, x, y, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
+        \qmlmethod TestCase::mousePress(item, x = item.width / 2, y = item.height / 2, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
 
         Simulates pressing a mouse \a button with an optional \a modifier
-        on an \a item.  The position is defined by \a x and \a y.  If \a delay is
-        specified, the test will wait for the specified amount of milliseconds
-        before the press.
+        on an \a item.  The position is defined by \a x and \a y.
+        If \a x or \a y are not defined the position will be the center of \a item.
+        If \a delay is specified, the test will wait for the specified amount of
+        milliseconds before the press.
 
         The position given by \a x and \a y is transformed from the co-ordinate
         system of \a item into window co-ordinates and then delivered.
         If \a item is obscured by another item, or a child of \a item occupies
         that position, then the event will be delivered to the other item instead.
 
-        \sa mouseRelease(), mouseClick(), mouseDoubleClick(), mouseMove(), mouseDrag(), mouseWheel()
+        \sa mouseRelease(), mouseClick(), mouseDoubleClick(), mouseDoubleClickSequence(), mouseMove(), mouseDrag(), mouseWheel()
     */
     function mousePress(item, x, y, button, modifiers, delay) {
+        if (!item)
+            qtest_fail("No item given to mousePress", 1)
+
         if (button === undefined)
             button = Qt.LeftButton
         if (modifiers === undefined)
             modifiers = Qt.NoModifier
         if (delay == undefined)
             delay = -1
+        if (x === undefined)
+            x = item.width / 2
+        if (y === undefined)
+            y = item.height / 2
         if (!qtest_events.mousePress(item, x, y, button, modifiers, delay))
             qtest_fail("window not shown", 2)
     }
 
     /*!
-        \qmlmethod TestCase::mouseRelease(item, x, y, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
+        \qmlmethod TestCase::mouseRelease(item, x = item.width / 2, y = item.height / 2, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
 
         Simulates releasing a mouse \a button with an optional \a modifier
         on an \a item.  The position of the release is defined by \a x and \a y.
+        If \a x or \a y are not defined the position will be the center of \a item.
         If \a delay is specified, the test will wait for the specified amount of
         milliseconds before releasing the button.
 
@@ -970,15 +1003,22 @@ Item {
         If \a item is obscured by another item, or a child of \a item occupies
         that position, then the event will be delivered to the other item instead.
 
-        \sa mousePress(), mouseClick(), mouseDoubleClick(), mouseMove(), mouseDrag(), mouseWheel()
+        \sa mousePress(), mouseClick(), mouseDoubleClick(), mouseDoubleClickSequence(), mouseMove(), mouseDrag(), mouseWheel()
     */
     function mouseRelease(item, x, y, button, modifiers, delay) {
+        if (!item)
+            qtest_fail("No item given to mouseRelease", 1)
+
         if (button === undefined)
             button = Qt.LeftButton
         if (modifiers === undefined)
             modifiers = Qt.NoModifier
         if (delay == undefined)
             delay = -1
+        if (x === undefined)
+            x = item.width / 2
+        if (y === undefined)
+            y = item.height / 2
         if (!qtest_events.mouseRelease(item, x, y, button, modifiers, delay))
             qtest_fail("window not shown", 2)
     }
@@ -999,9 +1039,12 @@ Item {
         Note: this method does not imply a drop action, to make a drop, an additional
         mouseRelease(item, x + dx, y + dy) is needed.
 
-        \sa mousePress(), mouseClick(), mouseDoubleClick(), mouseMove(), mouseRelease(), mouseWheel()
+        \sa mousePress(), mouseClick(), mouseDoubleClick(), mouseDoubleClickSequence(), mouseMove(), mouseRelease(), mouseWheel()
     */
     function mouseDrag(item, x, y, dx, dy, button, modifiers, delay) {
+        if (!item)
+            qtest_fail("No item given to mouseDrag", 1)
+
         if (item.x === undefined || item.y === undefined)
             return
         if (button === undefined)
@@ -1010,6 +1053,7 @@ Item {
             modifiers = Qt.NoModifier
         if (delay == undefined)
             delay = -1
+        var moveDelay = Math.max(1, delay === -1 ? qtest_events.defaultMouseDelay : delay)
 
         // Divide dx and dy to have intermediate mouseMove while dragging
         // Fractions of dx/dy need be superior to the dragThreshold
@@ -1023,20 +1067,21 @@ Item {
 
         mousePress(item, x, y, button, modifiers, delay)
         //trigger dragging
-        mouseMove(item, x + util.dragThreshold + 1, y + util.dragThreshold + 1, delay, button)
+        mouseMove(item, x + util.dragThreshold + 1, y + util.dragThreshold + 1, moveDelay, button)
         if (ddx > 0 || ddy > 0) {
-            mouseMove(item, x + ddx, y + ddy, delay, button)
-            mouseMove(item, x + 2*ddx, y + 2*ddy, delay, button)
+            mouseMove(item, x + ddx, y + ddy, moveDelay, button)
+            mouseMove(item, x + 2*ddx, y + 2*ddy, moveDelay, button)
         }
-        mouseMove(item, x + dx, y + dy, delay, button)
+        mouseMove(item, x + dx, y + dy, moveDelay, button)
         mouseRelease(item, x + dx, y + dy, button, modifiers, delay)
     }
 
     /*!
-        \qmlmethod TestCase::mouseClick(item, x, y, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
+        \qmlmethod TestCase::mouseClick(item, x = item.width / 2, y = item.height / 2, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
 
         Simulates clicking a mouse \a button with an optional \a modifier
         on an \a item.  The position of the click is defined by \a x and \a y.
+        If \a x and \a y are not defined the position will be the center of \a item.
         If \a delay is specified, the test will wait for the specified amount of
         milliseconds before pressing and before releasing the button.
 
@@ -1045,24 +1090,32 @@ Item {
         If \a item is obscured by another item, or a child of \a item occupies
         that position, then the event will be delivered to the other item instead.
 
-        \sa mousePress(), mouseRelease(), mouseDoubleClick(), mouseMove(), mouseDrag(), mouseWheel()
+        \sa mousePress(), mouseRelease(), mouseDoubleClick(), mouseDoubleClickSequence(), mouseMove(), mouseDrag(), mouseWheel()
     */
     function mouseClick(item, x, y, button, modifiers, delay) {
+        if (!item)
+            qtest_fail("No item given to mouseClick", 1)
+
         if (button === undefined)
             button = Qt.LeftButton
         if (modifiers === undefined)
             modifiers = Qt.NoModifier
         if (delay == undefined)
             delay = -1
+        if (x === undefined)
+            x = item.width / 2
+        if (y === undefined)
+            y = item.height / 2
         if (!qtest_events.mouseClick(item, x, y, button, modifiers, delay))
             qtest_fail("window not shown", 2)
     }
 
     /*!
-        \qmlmethod TestCase::mouseDoubleClick(item, x, y, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
+        \qmlmethod TestCase::mouseDoubleClick(item, x = item.width / 2, y = item.height / 2, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
 
         Simulates double-clicking a mouse \a button with an optional \a modifier
         on an \a item.  The position of the click is defined by \a x and \a y.
+        If \a x and \a y are not defined the position will be the center of \a item.
         If \a delay is specified, the test will wait for the specified amount of
         milliseconds before pressing and before releasing the button.
 
@@ -1071,16 +1124,64 @@ Item {
         If \a item is obscured by another item, or a child of \a item occupies
         that position, then the event will be delivered to the other item instead.
 
-        \sa mousePress(), mouseRelease(), mouseClick(), mouseMove(), mouseDrag(), mouseWheel()
+        \sa mouseDoubleClickSequence(), mousePress(), mouseRelease(), mouseClick(), mouseMove(), mouseDrag(), mouseWheel()
     */
     function mouseDoubleClick(item, x, y, button, modifiers, delay) {
+        if (!item)
+            qtest_fail("No item given to mouseDoubleClick", 1)
+
         if (button === undefined)
             button = Qt.LeftButton
         if (modifiers === undefined)
             modifiers = Qt.NoModifier
         if (delay == undefined)
             delay = -1
+        if (x === undefined)
+            x = item.width / 2
+        if (y === undefined)
+            y = item.height / 2
         if (!qtest_events.mouseDoubleClick(item, x, y, button, modifiers, delay))
+            qtest_fail("window not shown", 2)
+    }
+
+    /*!
+        \qmlmethod TestCase::mouseDoubleClickSequence(item, x = item.width / 2, y = item.height / 2, button = Qt.LeftButton, modifiers = Qt.NoModifier, delay = -1)
+
+        Simulates the full sequence of events generated by double-clicking a mouse
+        \a button with an optional \a modifier on an \a item.
+
+        This method reproduces the sequence of mouse events generated when a user makes
+        a double click: Press-Release-Press-DoubleClick-Release.
+
+        The position of the click is defined by \a x and \a y.
+        If \a x and \a y are not defined the position will be the center of \a item.
+        If \a delay is specified, the test will wait for the specified amount of
+        milliseconds before pressing and before releasing the button.
+
+        The position given by \a x and \a y is transformed from the co-ordinate
+        system of \a item into window co-ordinates and then delivered.
+        If \a item is obscured by another item, or a child of \a item occupies
+        that position, then the event will be delivered to the other item instead.
+
+        This QML method was introduced in Qt 5.5.
+
+        \sa mouseDoubleClick(), mousePress(), mouseRelease(), mouseClick(), mouseMove(), mouseDrag(), mouseWheel()
+    */
+    function mouseDoubleClickSequence(item, x, y, button, modifiers, delay) {
+        if (!item)
+            qtest_fail("No item given to mouseDoubleClickSequence", 1)
+
+        if (button === undefined)
+            button = Qt.LeftButton
+        if (modifiers === undefined)
+            modifiers = Qt.NoModifier
+        if (delay == undefined)
+            delay = -1
+        if (x === undefined)
+            x = item.width / 2
+        if (y === undefined)
+            y = item.height / 2
+        if (!qtest_events.mouseDoubleClickSequence(item, x, y, button, modifiers, delay))
             qtest_fail("window not shown", 2)
     }
 
@@ -1096,9 +1197,12 @@ Item {
         If \a item is obscured by another item, or a child of \a item occupies
         that position, then the event will be delivered to the other item instead.
 
-        \sa mousePress(), mouseRelease(), mouseClick(), mouseDoubleClick(), mouseDrag(), mouseWheel()
+        \sa mousePress(), mouseRelease(), mouseClick(), mouseDoubleClick(), mouseDoubleClickSequence(), mouseDrag(), mouseWheel()
     */
     function mouseMove(item, x, y, delay, buttons) {
+        if (!item)
+            qtest_fail("No item given to mouseMove", 1)
+
         if (delay == undefined)
             delay = -1
         if (buttons == undefined)
@@ -1121,9 +1225,12 @@ Item {
 
         The \a xDelta and \a yDelta contain the wheel rotation distance in eighths of a degree. see \l QWheelEvent::angleDelta() for more details.
 
-        \sa mousePress(), mouseClick(), mouseDoubleClick(), mouseMove(), mouseRelease(), mouseDrag(), QWheelEvent::angleDelta()
+        \sa mousePress(), mouseClick(), mouseDoubleClick(), mouseDoubleClickSequence(), mouseMove(), mouseRelease(), mouseDrag(), QWheelEvent::angleDelta()
     */
     function mouseWheel(item, x, y, xDelta, yDelta, buttons, modifiers, delay) {
+        if (!item)
+            qtest_fail("No item given to mouseWheel", 1)
+
         if (delay == undefined)
             delay = -1
         if (buttons == undefined)
@@ -1211,6 +1318,9 @@ Item {
             qtest_results.finishTestData()
             qtest_runInternal("cleanup")
             qtest_results.finishTestDataCleanup()
+            // wait(0) will call processEvents() so objects marked for deletion
+            // in the test function will be deleted.
+            wait(0)
         }
     }
 
@@ -1242,6 +1352,9 @@ Item {
                 // Run the cleanup function.
                 qtest_runInternal("cleanup")
                 qtest_results.finishTestDataCleanup()
+                // wait(0) will call processEvents() so objects marked for deletion
+                // in the test function will be deleted.
+                wait(0)
             } while (!qtest_results.measurementAccepted())
             qtest_results.endDataRun()
         } while (qtest_results.needsMoreMeasurements())
@@ -1358,9 +1471,6 @@ Item {
             } else {
                 qtest_runFunction(prop, null, isBenchmark)
             }
-            // wait(0) will call processEvents() so objects marked for deletion
-            // in the test function will be deleted.
-            wait(0)
             qtest_results.finishTestFunction()
             qtest_results.skipped = false
         }

@@ -1,7 +1,7 @@
 /****************************************************************************
 **
-** Copyright (C) 2013 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the Qt Graphical Effects module.
 **
@@ -17,8 +17,8 @@
 **     notice, this list of conditions and the following disclaimer in
 **     the documentation and/or other materials provided with the
 **     distribution.
-**   * Neither the name of Digia Plc and its Subsidiary(-ies) nor the names
-**     of its contributors may be used to endorse or promote products derived
+**   * Neither the name of The Qt Company Ltd nor the names of its
+**     contributors may be used to endorse or promote products derived
 **     from this software without specific prior written permission.
 **
 **
@@ -39,11 +39,11 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import "private"
+import QtGraphicalEffects.private 1.0
 
 /*!
     \qmltype RadialGradient
-    \inqmlmodule QtGraphicalEffects 1.0
+    \inqmlmodule QtGraphicalEffects
     \since QtGraphicalEffects 1.0
     \inherits QtQuick2::Item
     \ingroup qtgraphicaleffects-gradient
@@ -265,42 +265,61 @@ Item {
         \row
             \li \b {gradient:} \code
     Gradient {
-      GradientStop { position: 0.000
-      color: Qt.rgba(1, 0, 0, 1) }
-      GradientStop { position: 0.167;
-      color: Qt.rgba(1, 1, 0, 1) }
-      GradientStop { position: 0.333;
-      color: Qt.rgba(0, 1, 0, 1) }
-      GradientStop { position: 0.500;
-      color: Qt.rgba(0, 1, 1, 1) }
-      GradientStop { position: 0.667;
-      color: Qt.rgba(0, 0, 1, 1) }
-      GradientStop { position: 0.833;
-      color: Qt.rgba(1, 0, 1, 1) }
-      GradientStop { position: 1.000;
-      color: Qt.rgba(1, 0, 0, 1) }
+      GradientStop {
+       position: 0.000
+       color: Qt.rgba(1, 0, 0, 1)
+      }
+      GradientStop {
+       position: 0.167
+       color: Qt.rgba(1, 1, 0, 1)
+      }
+      GradientStop {
+       position: 0.333
+       color: Qt.rgba(0, 1, 0, 1)
+      }
+      GradientStop {
+       position: 0.500
+       color: Qt.rgba(0, 1, 1, 1)
+       }
+      GradientStop {
+       position: 0.667
+       color: Qt.rgba(0, 0, 1, 1)
+      }
+      GradientStop {
+       position: 0.833
+       color: Qt.rgba(1, 0, 1, 1)
+      }
+      GradientStop {
+       position: 1.000
+       color: Qt.rgba(1, 0, 0, 1)
+      }
     }
         \endcode
             \li \b {gradient:} \code
     Gradient {
-      GradientStop { position: 0.0
-      color: "#F0F0F0"
+      GradientStop {
+        position: 0.0
+        color: "#F0F0F0"
       }
-      GradientStop { position: 0.5
-      color: "#000000"
+      GradientStop {
+        position: 0.5
+        color: "#000000"
       }
-      GradientStop { position: 1.0
-      color: "#F0F0F0"
+      GradientStop {
+        position: 1.0
+        color: "#F0F0F0"
       }
     }
         \endcode
             \li \b {gradient:}
     \code
     Gradient {
-      GradientStop { position: 0.0
+      GradientStop {
+        position: 0.0
         color: "#00000000"
       }
-      GradientStop { position: 1.0
+      GradientStop {
+        position: 1.0
         color: "#FF000000"
       }
     }
