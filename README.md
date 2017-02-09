@@ -8,7 +8,7 @@
 
 #### A) Install with pip and git
 
-With this approach, you get version 5.4
+With this approach, you get version 5.7.1
 
 ```bash
 $ pip install git+git://github.com/pyqt/python-qt5.git
