@@ -53,7 +53,8 @@ def get_package_data():
                                   "*.pyd",
                                   "*.conf",
                                   "*.api",
-                                  "*.qm"])
+                                  "*.qm",
+                                  "*.bat"])
     return package_data
 
 
