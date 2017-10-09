@@ -2,10 +2,6 @@
 
 [![Build status](https://ci.appveyor.com/api/projects/status/wfp7ximk4janf9yj?svg=true)](https://ci.appveyor.com/project/mottosso/python-qt5) [![PyPI version][pypi]][pypi_repo]
 
-# Heads up! This project *may* be removed from PyPI
-
-..in favour of the official distribution exclusively for Python 3+. See #32 for details and let us know if you have any issues with it.
-
 <br>
 <br>
 <br>
